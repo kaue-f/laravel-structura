@@ -26,7 +26,7 @@ Its main goal is to simplify development workflows by reducing repetitive tasks 
 ## 📦 Installation
 
 ```bash
-
+    composer require kaue-f/laravel-structura
 ```
 
 ## 📚 Usage Examples
