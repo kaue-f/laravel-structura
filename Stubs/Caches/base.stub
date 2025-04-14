@@ -1,0 +1,8 @@
+<?php
+
+namespace App\Services\Caches{{namespace}};
+
+class {{class}} extends BaseCache
+{
+    
+}
