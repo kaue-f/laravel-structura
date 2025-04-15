@@ -9,7 +9,9 @@ use Symfony\Component\Console\Input\InputArgument;
 
 class ServiceCreation extends Command
 {
-    protected $signature = 'make:service {name}';
+    protected $signature = 'make:service {name}
+                            {--construct : Create an service with __construct method (default)}
+                            {--raw :  Create an service with without method}';
 
     protected $description = 'Create a new service class';
 
@@ -93,6 +95,9 @@ class ServiceCreation extends Command
 
     protected function getStub(): string
     {
-        return file_get_contents(dirname(__DIR__) . '/../Stubs/Services/raw.stub');
+        return match (true) {
+            $this->option('raw') => file_get_contents(dirname(__DIR__) . '/../Stubs/Services/raw.stub'),
+            default => file_get_contents(dirname(__DIR__) . '/../Stubs/Services/construct.stub'),
+        };
     }
 }

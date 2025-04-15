@@ -26,7 +26,7 @@ Its main goal is to simplify development workflows by reducing repetitive tasks 
 ## 📦 Installation
 
 ```bash
-    composer require kaue-f/laravel-structura
+composer require kaue-f/laravel-structura
 ```
 
 ## 📚 Usage Examples
@@ -34,24 +34,26 @@ Its main goal is to simplify development workflows by reducing repetitive tasks 
 ### Action
 
 ```bash
-    php artisan make:action Logout 
-    php artisan make:action Logout --execute    #Default
-    php artisan make:action Logout --invoke
-    php artisan make:action Logout --raw
+php artisan make:action Logout 
+php artisan make:action Logout --execute    #Default
+php artisan make:action Logout --invoke
+php artisan make:action Logout --raw
 ```
 
 ### Cache
 
 ```bash
-    php artisan make:cache Classification 
-    php artisan make:cache Classification --base    #Default
-    php artisan make:cache Classification --raw
+php artisan make:cache Classification 
+php artisan make:cache Classification --base    #Default
+php artisan make:cache Classification --raw
 ```
 
 ### Service
 
 ```bash
-    php artisan make:service Comment    #Default
+php artisan make:service Comment
+php artisan make:service Comment --construct    #Default
+php artisan make:service Comment --raw
 ```
 
 ## 🧱 Example Structure
