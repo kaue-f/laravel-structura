@@ -1,6 +1,6 @@
 {
     "name": "kaue-f/laravel-structura",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Laravel-Structura is a tool designed to streamline and standardize the creation of resources in Laravel, promoting a more organized and scalable development structure.",
     "type": "library",
     "license": "MIT",
