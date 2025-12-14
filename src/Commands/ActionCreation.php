@@ -5,50 +5,84 @@ namespace Structura\Commands;
 use InvalidArgumentException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Console\Input\InputArgument;
 
 class ActionCreation extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'make:action {name}
+                            {--construct=: Create an action with __construct method}  
                             {--execute : Create an action with execute method (default)}
-                            {--invoke : Create an action with __invoke method}
-                            {--raw :  Create an action with without method}';
+                            {--handle : Create an action with handle method}
+                            {--invokable : Create an action with __invoke method}
+                            {--raw : Create an action without methods}';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
     protected $description = 'Create a new action class';
 
+    /**
+     * The root namespace for actions.
+     *
+     * @var string
+     */
+    protected string $namespaceRoot = 'App\\Actions';
+
+    /**
+     * Execute the console command.
+     * 
+     * @return int
+     */
     public function handle()
     {
+        $this->validateMethodOptions();
+        $this->info("\n🚀 Creating new action...\n");
+
         $name = $this->getClassName();
         $path = $this->getPath($name);
 
-        $stub = $this->getStub();
-        $namespace = $this->getNamespace($name);
-        $className = basename($name);
-
         if (File::exists($path)) {
-            $this->error("\nThe action {$className} already exists!\n");
-            return Command::FAILURE;
+            $this->error("\n❌ Action already exists!\n");
+            return self::FAILURE;
         }
 
+        $stub = file_get_contents(__DIR__ . '/../../Stubs/action.stub');
+
         $content = str_replace(
-            ['{{namespace}}', '{{class}}'],
-            [$namespace, $className],
+            ['{{namespace}}', '{{class}}', '{{method}}', '{{constructor}}'],
+            [
+                $this->getNamespace($name),
+                class_basename($name),
+                $this->getMethodStub(),
+                $this->option('construct') ? $this->constructMethod() : ''
+            ],
             $stub
         );
 
         File::ensureDirectoryExists(dirname($path));
         File::put($path, $content);
 
-        $this->info("\n✅ Action {$className} created successfully!\n");
-        return Command::SUCCESS;
+        $this->info("\n✨ Action created successfully!\n");
+        return self::SUCCESS;
     }
 
+    /**
+     * Get the fully qualified class name.
+     * 
+     * return string
+     */
     protected function getClassName(): string
     {
         $name = trim($this->argument('name'));
 
         if (empty($name))
-            throw new InvalidArgumentException("\nAction name cannot be empty.\n");
+            throw new InvalidArgumentException("\n⚠️ Action name cannot be empty.\n");
 
         $this->validateName($name);
 
@@ -65,41 +99,132 @@ class ActionCreation extends Command
         return implode('/', $parts);
     }
 
+    /**
+     * Validate the action name.
+     * 
+     * @param string $name
+     * @return void
+     */
     protected function validateName(string $name): void
     {
         if (!preg_match('/^([a-zA-Z]+[\/\\\\]?)+$/', $name))
             throw new InvalidArgumentException(
-                "Invalid action name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
+                "⚠️ Invalid action name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
             );
     }
 
+    /**
+     * Get the file path for the action.
+     * 
+     * @param string $name
+     * @return string
+     */
     protected function getPath(string $name): string
     {
         return app_path("Actions/$name.php");
     }
 
+    /**
+     * Get the namespace for the action.
+     * 
+     * @param string $name
+     * @return string
+     */
     protected function getNamespace(string $name): string
     {
         $directory = dirname($name);
 
-        return ($directory === '.')
-            ? ''
-            : '\\' . str_replace('/', '\\', $directory);
+        return $this->namespaceRoot . ($directory === '.' ? '' : '\\' . str_replace('/', '\\', $directory));
     }
 
-    protected function getArguments(): array
+    /**
+     * Validate the method options.
+     * 
+     * @return void
+     */
+    protected function validateMethodOptions(): void
     {
-        return [
-            ['name', InputArgument::REQUIRED, "\nThe name of the action.\n"]
-        ];
+        $methods = collect(['execute', 'handle', 'invokable', 'raw'])
+            ->filter(fn($option) => $this->option($option));
+
+        if ($methods->count() > 1)
+            throw new InvalidArgumentException(
+                "⚠️ Choose only one method option: --execute, --handle, --invokable or --raw."
+            );
     }
 
-    protected function getStub(): string
+    /**
+     * Get the method stub based on the selected option.
+     * 
+     * @return string
+     */
+    protected function getMethodStub(): string
     {
         return match (true) {
-            $this->option('invoke') => file_get_contents(dirname(__DIR__) . '/../Stubs/Actions/invoke.stub'),
-            $this->option('raw') => file_get_contents(dirname(__DIR__) . '/../Stubs/Actions/raw.stub'),
-            default => file_get_contents(dirname(__DIR__) . '/../Stubs/Actions/execute.stub'),
+            $this->option('handle') => $this->handleMethod(),
+            $this->option('invokable') => $this->invokableMethod(),
+            $this->option('raw') => '',
+            default => $this->executeMethod(),
         };
+    }
+
+    /**
+     * Get the execute method stub.
+     * 
+     * @return string
+     */
+    protected function executeMethod(): string
+    {
+        return <<<PHP
+        public function execute()
+        {
+            //
+        }
+    PHP;
+    }
+
+    /**
+     * Get the handle method stub.
+     * 
+     * @return string
+     */
+    protected function handleMethod(): string
+    {
+        return <<<PHP
+        public function handle()
+        {
+            //
+        }
+    PHP;
+    }
+
+    /**
+     * Get the invokable method stub.
+     * 
+     * @return string
+     */
+    protected function invokableMethod(): string
+    {
+        return <<<PHP
+        public function __invoke()
+        {
+            //
+        }
+    PHP;
+    }
+
+    /**
+     * Get the construct method stub.
+     * 
+     * @return string
+     */
+    protected function constructMethod(): string
+    {
+        return <<<PHP
+        public function __construct()
+        {
+            //
+        }
+    PHP;
     }
 }
