@@ -5,43 +5,74 @@ namespace Structura\Commands;
 use InvalidArgumentException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Console\Input\InputArgument;
 
 class ServiceCreation extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'make:service {name}
                             {--construct : Create an service with __construct method (default)}
                             {--raw :  Create an service with without method}';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
     protected $description = 'Create a new service class';
 
+    /**
+     * The root namespace for services.
+     *
+     * @var string
+     */
+    protected string $namespaceRoot = 'App\\Services';
+
+    /**
+     * Execute the console command.
+     * 
+     * @return int
+     */
     public function handle()
     {
+        $this->validateMethodOptions();
+        $this->info("\n🚀 Creating new service...\n");
+
         $name = $this->getClassName();
         $path = $this->getPath($name);
 
-        $stub = $this->getStub();
-        $namespace = $this->getNamespace($name);
-        $className = basename($name);
-
         if (File::exists($path)) {
-            $this->error("\nThe service {$className} already exists!\n");
-            return Command::FAILURE;
+            $this->error("\n❌ The service already exists!\n");
+            return self::FAILURE;
         }
 
+        $stub = file_get_contents(__DIR__ . '/../../Stubs/service.stub');
+
         $content = str_replace(
-            ['{{namespace}}', '{{class}}'],
-            [$namespace, $className],
+            ['{{namespace}}', '{{class}}', '{{method}}'],
+            [
+                $this->getNamespace($name),
+                class_basename($name),
+                $this->getMethodStub()
+            ],
             $stub
         );
 
         File::ensureDirectoryExists(dirname($path));
         File::put($path, $content);
 
-        $this->info("\n✅ Service {$className} created successfully!\n");
-        return Command::SUCCESS;
+        $this->info("\n✨ Service created successfully!\n");
+        return self::SUCCESS;
     }
 
+    /**
+     * Get the fully qualified class name.
+     * 
+     * return string
+     */
     protected function getClassName(): string
     {
         $name = trim($this->argument('name'));
@@ -64,6 +95,12 @@ class ServiceCreation extends Command
         return implode('/', $parts);
     }
 
+    /**
+     * Validate the service name.
+     * 
+     * @param string $name
+     * @return void
+     */
     protected function validateName(string $name): void
     {
         if (!preg_match('/^([a-zA-Z]+[\/\\\\]?)+$/', $name))
@@ -72,32 +109,71 @@ class ServiceCreation extends Command
             );
     }
 
+    /**
+     * Get the file path for the service.
+     * 
+     * @param string $name
+     * @return string
+     */
     protected function getPath(string $name): string
     {
         return app_path("Services/{$name}.php");
     }
 
+    /**
+     * Get the namespace for the service.
+     * 
+     * @param string $name
+     * @return string
+     */
     protected function getNamespace(string $name): string
     {
         $directory = dirname($name);
 
-        return ($directory === '.')
-            ? ''
-            : '\\' . str_replace('/', '\\', $directory);
+        return $this->namespaceRoot . ($directory === '.' ? '' : '\\' . str_replace('/', '\\', $directory));
     }
 
-    protected function getArguments(): array
+    /**
+     * Validate the method options.
+     * 
+     * @return void
+     */
+    protected function validateMethodOptions(): void
     {
-        return [
-            ['name', InputArgument::REQUIRED, "\nThe name of the service\n"]
-        ];
+        $methods = collect(['construct', 'raw'])
+            ->filter(fn($option) => $this->option($option));
+
+        if ($methods->count() > 1)
+            throw new InvalidArgumentException(
+                "⚠️ Choose only one option: --construct or --raw."
+            );
     }
 
-    protected function getStub(): string
+    /**
+     * Get the method stub based on the selected option.
+     * 
+     * @return string
+     */
+    protected function getMethodStub(): string
     {
         return match (true) {
-            $this->option('raw') => file_get_contents(dirname(__DIR__) . '/../Stubs/Services/raw.stub'),
-            default => file_get_contents(dirname(__DIR__) . '/../Stubs/Services/construct.stub'),
+            $this->option('raw') => '',
+            default => $this->constructMethod(),
         };
+    }
+
+    /**
+     * Get the construct method stub.
+     * 
+     * @return string
+     */
+    protected function constructMethod(): string
+    {
+        return <<<PHP
+        public function __construct()
+        {
+            //
+        }
+    PHP;
     }
 }
