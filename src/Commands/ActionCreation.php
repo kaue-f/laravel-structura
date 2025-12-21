@@ -14,10 +14,10 @@ class ActionCreation extends Command
      * @var string
      */
     protected $signature = 'make:action {name}
-                            {--construct=: Create an action with __construct method}  
-                            {--execute : Create an action with execute method (default)}
-                            {--handle : Create an action with handle method}
-                            {--invokable : Create an action with __invoke method}
+                            {--construct : Create an action with a __construct method}  
+                            {--execute : Create an action with a execute method (default)}
+                            {--handle : Create an action with a handle method}
+                            {--invokable : Create an action with a __invoke method}
                             {--raw : Create an action without methods}';
 
     /**
@@ -176,7 +176,7 @@ class ActionCreation extends Command
     protected function executeMethod(): string
     {
         return <<<PHP
-        public function execute()
+    public function execute()
         {
             //
         }
@@ -191,7 +191,7 @@ class ActionCreation extends Command
     protected function handleMethod(): string
     {
         return <<<PHP
-        public function handle()
+    public function handle()
         {
             //
         }
@@ -206,7 +206,7 @@ class ActionCreation extends Command
     protected function invokableMethod(): string
     {
         return <<<PHP
-        public function __invoke()
+    public function __invoke()
         {
             //
         }
@@ -221,10 +221,12 @@ class ActionCreation extends Command
     protected function constructMethod(): string
     {
         return <<<PHP
-        public function __construct()
+    public function __construct()
         {
             //
         }
+
+        
     PHP;
     }
 }

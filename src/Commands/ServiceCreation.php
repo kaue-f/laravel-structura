@@ -14,7 +14,7 @@ class ServiceCreation extends Command
      * @var string
      */
     protected $signature = 'make:service {name}
-                            {--construct : Create an service with __construct method (default)}
+                            {--construct : Create an service with a __construct method (default)}
                             {--raw :  Create an service with without method}';
 
     /**
@@ -170,7 +170,7 @@ class ServiceCreation extends Command
     protected function constructMethod(): string
     {
         return <<<PHP
-        public function __construct()
+    public function __construct()
         {
             //
         }
