@@ -1,35 +1,35 @@
 <?php
 
-namespace Structura\Commands;
+namespace Structura\Console\Commands;
 
 use InvalidArgumentException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-class ServiceCreation extends Command
+class CacheCreation extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:service {name}
-                            {--construct : Create an service with a __construct method (default)}
-                            {--raw :  Create an service with without method}';
+    protected $signature = 'make:cache {name}
+                            {--base : Create a cache class extending CacheService (default)}
+                            {--raw : Create a standalone cache class without CacheService extensio}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new service class';
+    protected $description = 'Create a new cache class (extends CacheService by default)';
 
     /**
-     * The root namespace for services.
+     * The root namespace for actions.
      *
      * @var string
      */
-    protected string $namespaceRoot = 'App\\Services';
+    protected $namespaceRoot = 'App\\Services\\Caches';
 
     /**
      * Execute the console command.
@@ -39,24 +39,26 @@ class ServiceCreation extends Command
     public function handle()
     {
         $this->validateMethodOptions();
-        $this->info("\n🚀 Creating new service...\n");
+        $this->info("🚀 Creating new cache...");
 
         $name = $this->getClassName();
         $path = $this->getPath($name);
 
         if (File::exists($path)) {
-            $this->error("\n❌ The service already exists!\n");
+            $this->error("\n❌ The cache already exists!");
             return self::FAILURE;
         }
 
-        $stub = file_get_contents(__DIR__ . '/../../Stubs/service.stub');
+        $stub = file_get_contents(filename: __DIR__ . '/../../../Stubs/cache.stub');
 
         $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{method}}'],
+            ['{{namespace}}', '{{class}}', '{{extends}}', '{{imports}}', '{{prefix}}'],
             [
                 $this->getNamespace($name),
                 class_basename($name),
-                $this->getMethodStub()
+                ($this->option('raw')) ? '' : 'extends CacheService',
+                ($this->option('raw')) ? '' : $this->getImportsStub(),
+                $this->getPrefixStub($name)
             ],
             $stub
         );
@@ -64,21 +66,22 @@ class ServiceCreation extends Command
         File::ensureDirectoryExists(dirname($path));
         File::put($path, $content);
 
-        $this->info("\n✨ Service created successfully!\n");
+        $this->info("\n✨ Cache created successfully!");
+        $this->line("📝 [{$path}] \n");
         return self::SUCCESS;
     }
 
     /**
      * Get the fully qualified class name.
      * 
-     * return string
+     * @return string
      */
     protected function getClassName(): string
     {
         $name = trim($this->argument('name'));
 
         if (empty($name))
-            throw new InvalidArgumentException("\nService name cannot be empty");
+            throw new InvalidArgumentException("\n⚠️ Cache name cannot be empty");
 
         $this->validateName($name);
 
@@ -86,8 +89,8 @@ class ServiceCreation extends Command
 
         $className = ucfirst(array_pop($parts));
 
-        if (!str_ends_with(strtolower($className), 'service'))
-            $className .= 'Service';
+        if (!str_ends_with(strtolower($className), 'cache'))
+            $className .= 'Cache';
 
         $parts = array_map('ucfirst', $parts);
 
@@ -96,7 +99,7 @@ class ServiceCreation extends Command
     }
 
     /**
-     * Validate the service name.
+     * Validate the cache name.
      * 
      * @param string $name
      * @return void
@@ -105,23 +108,23 @@ class ServiceCreation extends Command
     {
         if (!preg_match('/^([a-zA-Z]+[\/\\\\]?)+$/', $name))
             throw new InvalidArgumentException(
-                "Invalid service name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
+                "⚠️ Invalid cache name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
             );
     }
 
     /**
-     * Get the file path for the service.
+     * Get the file path for the cache.
      * 
      * @param string $name
      * @return string
      */
     protected function getPath(string $name): string
     {
-        return app_path("Services/{$name}.php");
+        return app_path("Services/Caches/$name.php");
     }
 
     /**
-     * Get the namespace for the service.
+     * Get the namespace for the cache.
      * 
      * @param string $name
      * @return string
@@ -140,40 +143,46 @@ class ServiceCreation extends Command
      */
     protected function validateMethodOptions(): void
     {
-        $methods = collect(['construct', 'raw'])
+        $methods = collect(['base', 'raw'])
             ->filter(fn($option) => $this->option($option));
 
         if ($methods->count() > 1)
             throw new InvalidArgumentException(
-                "⚠️ Choose only one option: --construct or --raw."
+                "⚠️ Choose only one option: --base or --raw."
             );
     }
 
     /**
-     * Get the method stub based on the selected option.
+     * Get the imports stub based on the selected option.
      * 
      * @return string
      */
-    protected function getMethodStub(): string
+    protected function getImportsStub(): string
     {
-        return match (true) {
-            $this->option('raw') => '',
-            default => $this->constructMethod(),
-        };
+        return <<<PHP
+
+    use Structura\Support\Cache\CacheService;
+
+    PHP;
     }
 
     /**
-     * Get the construct method stub.
+     * Get the prefix stub. 
      * 
+     * @param string $name
      * @return string
      */
-    protected function constructMethod(): string
+    protected function getPrefixStub(string $name): string
     {
+        $name = strtolower(preg_replace('/Cache$/', '', $name));
+
         return <<<PHP
-    public function __construct()
-        {
-            //
-        }
+    /**
+         * Name of the cache key.
+         * 
+         * @var string
+         */
+        protected string \$prefix = '$name';
     PHP;
     }
 }

@@ -2,8 +2,9 @@
 
 namespace Tests;
 
-use Structura\ConsoleServiceProvider;
+
 use Orchestra\Testbench\TestCase as Orchestra;
+use Structura\Providers\ConsoleServiceProvider;
 
 abstract class TestCase extends Orchestra
 {

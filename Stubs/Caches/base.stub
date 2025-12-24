@@ -1,9 +1,0 @@
-<?php
-
-namespace App\Services\Caches{{namespace}};
-
-class {{class}} extends BaseCache
-{
-    protected string $key = '';
-    
-}

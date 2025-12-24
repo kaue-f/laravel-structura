@@ -1,11 +1,11 @@
 <?php
 
-namespace Structura;
+namespace Structura\Providers;
 
-use Structura\Commands\CacheCreation;
-use Structura\Commands\ActionCreation;
 use Illuminate\Support\ServiceProvider;
-use Structura\Commands\ServiceCreation;
+use Structura\Console\Commands\CacheCreation;
+use Structura\Console\Commands\ActionCreation;
+use Structura\Console\Commands\ServiceCreation;
 
 class ConsoleServiceProvider extends ServiceProvider
 {

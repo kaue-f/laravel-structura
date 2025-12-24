@@ -1,38 +1,35 @@
 <?php
 
-namespace Structura\Commands;
+namespace Structura\Console\Commands;
 
 use InvalidArgumentException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-class ActionCreation extends Command
+class ServiceCreation extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:action {name}
-                            {--construct : Create an action with a __construct method}  
-                            {--execute : Create an action with a execute method (default)}
-                            {--handle : Create an action with a handle method}
-                            {--invokable : Create an action with a __invoke method}
-                            {--raw : Create an action without methods}';
+    protected $signature = 'make:service {name}
+                            {--construct : Create an service with a __construct method (default)}
+                            {--raw :  Create an service with without method}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new action class';
+    protected $description = 'Create a new service class';
 
     /**
-     * The root namespace for actions.
+     * The root namespace for services.
      *
      * @var string
      */
-    protected string $namespaceRoot = 'App\\Actions';
+    protected string $namespaceRoot = 'App\\Services';
 
     /**
      * Execute the console command.
@@ -42,25 +39,24 @@ class ActionCreation extends Command
     public function handle()
     {
         $this->validateMethodOptions();
-        $this->info("\n🚀 Creating new action...\n");
+        $this->info("🚀 Creating new service...");
 
         $name = $this->getClassName();
         $path = $this->getPath($name);
 
         if (File::exists($path)) {
-            $this->error("\n❌ Action already exists!\n");
+            $this->error("\n❌ The service already exists!\n");
             return self::FAILURE;
         }
 
-        $stub = file_get_contents(__DIR__ . '/../../Stubs/action.stub');
+        $stub = file_get_contents(__DIR__ . '/../../../Stubs/service.stub');
 
         $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{method}}', '{{constructor}}'],
+            ['{{namespace}}', '{{class}}', '{{method}}'],
             [
                 $this->getNamespace($name),
                 class_basename($name),
-                $this->getMethodStub(),
-                $this->option('construct') ? $this->constructMethod() : ''
+                $this->getMethodStub()
             ],
             $stub
         );
@@ -68,21 +64,22 @@ class ActionCreation extends Command
         File::ensureDirectoryExists(dirname($path));
         File::put($path, $content);
 
-        $this->info("\n✨ Action created successfully!\n");
+        $this->info("\n✨ Service created successfully!");
+        $this->line("📝 [{$path}] \n");
         return self::SUCCESS;
     }
 
     /**
      * Get the fully qualified class name.
      * 
-     * return string
+     * @return string
      */
     protected function getClassName(): string
     {
         $name = trim($this->argument('name'));
 
         if (empty($name))
-            throw new InvalidArgumentException("\n⚠️ Action name cannot be empty.\n");
+            throw new InvalidArgumentException("\nService name cannot be empty");
 
         $this->validateName($name);
 
@@ -90,8 +87,8 @@ class ActionCreation extends Command
 
         $className = ucfirst(array_pop($parts));
 
-        if (!str_ends_with(strtolower($className), 'action'))
-            $className .= 'Action';
+        if (!str_ends_with(strtolower($className), 'service'))
+            $className .= 'Service';
 
         $parts = array_map('ucfirst', $parts);
 
@@ -100,7 +97,7 @@ class ActionCreation extends Command
     }
 
     /**
-     * Validate the action name.
+     * Validate the service name.
      * 
      * @param string $name
      * @return void
@@ -109,23 +106,23 @@ class ActionCreation extends Command
     {
         if (!preg_match('/^([a-zA-Z]+[\/\\\\]?)+$/', $name))
             throw new InvalidArgumentException(
-                "⚠️ Invalid action name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
+                "Invalid service name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
             );
     }
 
     /**
-     * Get the file path for the action.
+     * Get the file path for the service.
      * 
      * @param string $name
      * @return string
      */
     protected function getPath(string $name): string
     {
-        return app_path("Actions/$name.php");
+        return app_path("Services/{$name}.php");
     }
 
     /**
-     * Get the namespace for the action.
+     * Get the namespace for the service.
      * 
      * @param string $name
      * @return string
@@ -144,12 +141,12 @@ class ActionCreation extends Command
      */
     protected function validateMethodOptions(): void
     {
-        $methods = collect(['execute', 'handle', 'invokable', 'raw'])
+        $methods = collect(['construct', 'raw'])
             ->filter(fn($option) => $this->option($option));
 
         if ($methods->count() > 1)
             throw new InvalidArgumentException(
-                "⚠️ Choose only one method option: --execute, --handle, --invokable or --raw."
+                "⚠️ Choose only one option: --construct or --raw."
             );
     }
 
@@ -161,56 +158,9 @@ class ActionCreation extends Command
     protected function getMethodStub(): string
     {
         return match (true) {
-            $this->option('handle') => $this->handleMethod(),
-            $this->option('invokable') => $this->invokableMethod(),
             $this->option('raw') => '',
-            default => $this->executeMethod(),
+            default => $this->constructMethod(),
         };
-    }
-
-    /**
-     * Get the execute method stub.
-     * 
-     * @return string
-     */
-    protected function executeMethod(): string
-    {
-        return <<<PHP
-    public function execute()
-        {
-            //
-        }
-    PHP;
-    }
-
-    /**
-     * Get the handle method stub.
-     * 
-     * @return string
-     */
-    protected function handleMethod(): string
-    {
-        return <<<PHP
-    public function handle()
-        {
-            //
-        }
-    PHP;
-    }
-
-    /**
-     * Get the invokable method stub.
-     * 
-     * @return string
-     */
-    protected function invokableMethod(): string
-    {
-        return <<<PHP
-    public function __invoke()
-        {
-            //
-        }
-    PHP;
     }
 
     /**
@@ -225,8 +175,6 @@ class ActionCreation extends Command
         {
             //
         }
-
-        
     PHP;
     }
 }
