@@ -1,35 +1,49 @@
 <?php
 
-namespace Structura\Console\Commands;
+namespace KaueF\Structura\Console\Commands;
 
-use InvalidArgumentException;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
+use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
 class CacheCreation extends Command
 {
+    use InteractsWithCreate;
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:cache {name}
-                            {--base : Create a cache class extending CacheService (default)}
-                            {--raw : Create a standalone cache class without CacheService extensio}';
+    protected $signature = 'structura:cache {name : Cache name}
+                            {--e|extend : Create a cache class extending CacheSupport}
+                            {--r|raw : Create a standalone cache class without CacheSupport extensio}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new cache class (extends CacheService by default)';
+    protected $description = 'Create a new cache class';
 
     /**
      * The root namespace for actions.
      *
      * @var string
      */
-    protected $namespaceRoot = 'App\\Services\\Caches';
+    protected function namespaceRoot(): string
+    {
+        return 'App\\Caches';
+    }
+
+    /**
+     * The type of the console command.
+     *
+     * @var string
+     */
+    protected function type(): string
+    {
+        return 'cache';
+    }
 
     /**
      * Execute the console command.
@@ -41,99 +55,24 @@ class CacheCreation extends Command
         $this->validateMethodOptions();
         $this->info("🚀 Creating new cache...");
 
-        $name = $this->getClassName();
+        $name = $this->getClassName($this->argument('name'));
         $path = $this->getPath($name);
-
-        if (File::exists($path)) {
-            $this->error("\n❌ The cache already exists!");
-            return self::FAILURE;
-        }
-
-        $stub = file_get_contents(filename: __DIR__ . '/../../../Stubs/cache.stub');
+        $stub = file_get_contents(filename: __DIR__ . '/../../../stubs/cache.stub');
 
         $content = str_replace(
             ['{{namespace}}', '{{class}}', '{{extends}}', '{{imports}}', '{{prefix}}'],
             [
                 $this->getNamespace($name),
                 class_basename($name),
-                ($this->option('raw')) ? '' : 'extends CacheService',
-                ($this->option('raw')) ? '' : $this->getImportsStub(),
-                $this->getPrefixStub($name)
+                ($this->option('extend')) ? 'extends CacheSupport' : '',
+                ($this->option('extend')) ?  $this->getImportsStub() : '',
+                ($this->option('raw')) ? '//' : $this->getPrefixStub($name)
             ],
             $stub
         );
 
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, $content);
-
-        $this->info("\n✨ Cache created successfully!");
-        $this->line("📝 [{$path}] \n");
+        $this->finishCreation($path, $content);
         return self::SUCCESS;
-    }
-
-    /**
-     * Get the fully qualified class name.
-     * 
-     * @return string
-     */
-    protected function getClassName(): string
-    {
-        $name = trim($this->argument('name'));
-
-        if (empty($name))
-            throw new InvalidArgumentException("\n⚠️ Cache name cannot be empty");
-
-        $this->validateName($name);
-
-        $parts = preg_split('/[\/\\\\]/', $name);
-
-        $className = ucfirst(array_pop($parts));
-
-        if (!str_ends_with(strtolower($className), 'cache'))
-            $className .= 'Cache';
-
-        $parts = array_map('ucfirst', $parts);
-
-        $parts[] = $className;
-        return implode('/', $parts);
-    }
-
-    /**
-     * Validate the cache name.
-     * 
-     * @param string $name
-     * @return void
-     */
-    protected function validateName(string $name): void
-    {
-        if (!preg_match('/^([a-zA-Z]+[\/\\\\]?)+$/', $name))
-            throw new InvalidArgumentException(
-                "⚠️ Invalid cache name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
-            );
-    }
-
-    /**
-     * Get the file path for the cache.
-     * 
-     * @param string $name
-     * @return string
-     */
-    protected function getPath(string $name): string
-    {
-        return app_path("Services/Caches/$name.php");
-    }
-
-    /**
-     * Get the namespace for the cache.
-     * 
-     * @param string $name
-     * @return string
-     */
-    protected function getNamespace(string $name): string
-    {
-        $directory = dirname($name);
-
-        return $this->namespaceRoot . ($directory === '.' ? '' : '\\' . str_replace('/', '\\', $directory));
     }
 
     /**
@@ -143,13 +82,13 @@ class CacheCreation extends Command
      */
     protected function validateMethodOptions(): void
     {
-        $methods = collect(['base', 'raw'])
+        $methods = collect(['extend', 'raw'])
             ->filter(fn($option) => $this->option($option));
 
-        if ($methods->count() > 1)
-            throw new InvalidArgumentException(
-                "⚠️ Choose only one option: --base or --raw."
-            );
+        if ($methods->count() > 1) {
+            $this->error("⚠️ Choose only one option: --extend or --raw.");
+            exit(self::FAILURE);
+        }
     }
 
     /**
@@ -161,7 +100,7 @@ class CacheCreation extends Command
     {
         return <<<PHP
 
-    use Structura\Support\Cache\CacheService;
+    use KaueF\Structura\Support\Cache\CacheSupport;
 
     PHP;
     }

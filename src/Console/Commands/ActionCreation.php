@@ -1,24 +1,25 @@
 <?php
 
-namespace Structura\Console\Commands;
+namespace KaueF\Structura\Console\Commands;
 
-use InvalidArgumentException;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
+use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
 class ActionCreation extends Command
 {
+    use InteractsWithCreate;
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:action {name}
-                            {--construct : Create an action with a __construct method}  
-                            {--execute : Create an action with a execute method (default)}
-                            {--handle : Create an action with a handle method}
-                            {--invokable : Create an action with a __invoke method}
-                            {--raw : Create an action without methods}';
+    protected $signature = 'structura:action {name : Action name}
+                            {--c|construct : Create an action with a __construct method}  
+                            {--e|execute : Create an action with a execute method (default)}
+                            {--l|handle : Create an action with a handle method}
+                            {--i|invokable : Create an action with a __invoke method}
+                            {--r|raw : Create an action without methods}';
 
     /**
      * The console command description.
@@ -32,7 +33,20 @@ class ActionCreation extends Command
      *
      * @var string
      */
-    protected string $namespaceRoot = 'App\\Actions';
+    protected function namespaceRoot(): string
+    {
+        return 'App\\Actions';
+    }
+
+    /**
+     * The type of the console command.
+     *
+     * @var string
+     */
+    protected function type(): string
+    {
+        return 'action';
+    }
 
     /**
      * Execute the console command.
@@ -44,15 +58,9 @@ class ActionCreation extends Command
         $this->validateMethodOptions();
         $this->info("🚀 Creating new action...");
 
-        $name = $this->getClassName();
+        $name = $this->getClassName($this->argument('name'));
         $path = $this->getPath($name);
-
-        if (File::exists($path)) {
-            $this->error("\n❌ Action already exists!\n");
-            return self::FAILURE;
-        }
-
-        $stub = file_get_contents(__DIR__ . '/../../../Stubs/action.stub');
+        $stub = file_get_contents(__DIR__ . '/../../../stubs/action.stub');
 
         $content = str_replace(
             ['{{namespace}}', '{{class}}', '{{method}}', '{{constructor}}'],
@@ -65,77 +73,8 @@ class ActionCreation extends Command
             $stub
         );
 
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, $content);
-
-        $this->info("\n✨ Action created successfully!");
-        $this->line("📝 [{$path}] \n");
+        $this->finishCreation($path, $content);
         return self::SUCCESS;
-    }
-
-    /**
-     * Get the fully qualified class name.
-     * 
-     * @return string
-     */
-    protected function getClassName(): string
-    {
-        $name = trim($this->argument('name'));
-
-        if (empty($name))
-            throw new InvalidArgumentException("\n⚠️ Action name cannot be empty.\n");
-
-        $this->validateName($name);
-
-        $parts = preg_split('/[\/\\\\]/', $name);
-
-        $className = ucfirst(array_pop($parts));
-
-        if (!str_ends_with(strtolower($className), 'action'))
-            $className .= 'Action';
-
-        $parts = array_map('ucfirst', $parts);
-
-        $parts[] = $className;
-        return implode('/', $parts);
-    }
-
-    /**
-     * Validate the action name.
-     * 
-     * @param string $name
-     * @return void
-     */
-    protected function validateName(string $name): void
-    {
-        if (!preg_match('/^([a-zA-Z]+[\/\\\\]?)+$/', $name))
-            throw new InvalidArgumentException(
-                "⚠️ Invalid action name. Only alphabetic characters and namespace separators ('/' or '\\') are allowed."
-            );
-    }
-
-    /**
-     * Get the file path for the action.
-     * 
-     * @param string $name
-     * @return string
-     */
-    protected function getPath(string $name): string
-    {
-        return app_path("Actions/$name.php");
-    }
-
-    /**
-     * Get the namespace for the action.
-     * 
-     * @param string $name
-     * @return string
-     */
-    protected function getNamespace(string $name): string
-    {
-        $directory = dirname($name);
-
-        return $this->namespaceRoot . ($directory === '.' ? '' : '\\' . str_replace('/', '\\', $directory));
     }
 
     /**
@@ -148,10 +87,10 @@ class ActionCreation extends Command
         $methods = collect(['execute', 'handle', 'invokable', 'raw'])
             ->filter(fn($option) => $this->option($option));
 
-        if ($methods->count() > 1)
-            throw new InvalidArgumentException(
-                "⚠️ Choose only one method option: --execute, --handle, --invokable or --raw."
-            );
+        if ($methods->count() > 1) {
+            $this->error("\n⚠️ Choose only one method option: --execute, --handle, --invokable or --raw.\n");
+            exit(self::FAILURE);
+        }
     }
 
     /**
@@ -164,7 +103,7 @@ class ActionCreation extends Command
         return match (true) {
             $this->option('handle') => $this->handleMethod(),
             $this->option('invokable') => $this->invokableMethod(),
-            $this->option('raw') => '',
+            $this->option('raw') => '//',
             default => $this->executeMethod(),
         };
     }
@@ -226,8 +165,6 @@ class ActionCreation extends Command
         {
             //
         }
-
-        
     PHP;
     }
 }

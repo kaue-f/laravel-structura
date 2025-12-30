@@ -1,6 +1,6 @@
 <?php
 
-namespace Structura\Contracts\Cache;
+namespace KaueF\Structura\Contracts\Cache;
 
 interface CacheInterface
 {

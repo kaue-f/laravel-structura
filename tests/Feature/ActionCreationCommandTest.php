@@ -22,9 +22,9 @@ class ActionCreationCommandTest extends TestCase
      */
     public function test_action_creation_with_execute_method_by_default(): void
     {
-        $this->artisan('make:action', [
+        $this->artisan('structura:action', [
             'name' => 'SampleAction',
-            '--execute' => true,
+            '-e' => true,
         ])
             ->assertExitCode(0);
 
@@ -41,9 +41,9 @@ class ActionCreationCommandTest extends TestCase
      */
     public function test_action_creation_with_handle_method(): void
     {
-        $this->artisan('make:action', [
+        $this->artisan('structura:action', [
             'name' => 'SampleAction',
-            '--handle' => true,
+            '-l' => true,
         ])
             ->assertExitCode(0);
 
@@ -60,9 +60,9 @@ class ActionCreationCommandTest extends TestCase
      */
     public function test_action_creation_with_invokable_method(): void
     {
-        $this->artisan('make:action', [
+        $this->artisan('structura:action', [
             'name' => 'SampleAction',
-            '--invokable' => true,
+            '-i' => true,
         ])
             ->assertExitCode(0);
 
@@ -80,9 +80,9 @@ class ActionCreationCommandTest extends TestCase
      */
     public function test_action_creation_with_construct_method(): void
     {
-        $this->artisan('make:action', [
+        $this->artisan('structura:action', [
             'name' => 'SampleAction',
-            '--construct' => true,
+            '-c' => true,
         ])
             ->assertExitCode(0);
 
@@ -100,9 +100,9 @@ class ActionCreationCommandTest extends TestCase
      */
     public function test_action_creation_with_raw_option(): void
     {
-        $this->artisan('make:action', [
+        $this->artisan('structura:action', [
             'name' => 'SampleAction',
-            '--raw' => true,
+            '-r' => true,
         ])
             ->assertExitCode(0);
 

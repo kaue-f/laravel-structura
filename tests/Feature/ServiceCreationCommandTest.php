@@ -22,9 +22,9 @@ class ServiceCreationCommandTest extends TestCase
      */
     public function test_service_creation_with_construct_method_by_default(): void
     {
-        $this->artisan('make:service', [
+        $this->artisan('structura:service', [
             'name' => 'SampleService',
-            '--construct' => true,
+            '-c' => true,
         ])
             ->assertExitCode(0);
 
@@ -41,9 +41,9 @@ class ServiceCreationCommandTest extends TestCase
      */
     public function test_service_creation_with_raw_option(): void
     {
-        $this->artisan('make:service', [
+        $this->artisan('structura:service', [
             'name' => 'SampleService',
-            '--raw' => true,
+            '-r' => true,
         ])
             ->assertExitCode(0);
 

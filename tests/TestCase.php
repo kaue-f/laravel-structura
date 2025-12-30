@@ -2,9 +2,8 @@
 
 namespace Tests;
 
-
 use Orchestra\Testbench\TestCase as Orchestra;
-use Structura\Providers\ConsoleServiceProvider;
+use KaueF\Structura\Providers\ConsoleServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
