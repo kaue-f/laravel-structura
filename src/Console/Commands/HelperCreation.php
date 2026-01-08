@@ -27,7 +27,7 @@ class HelperCreation extends Command
      *
      * @var string
      */
-    protected $description = 'Create a new action class';
+    protected $description = 'Create a new helper class';
 
     /**
      * The root namespace for actions.

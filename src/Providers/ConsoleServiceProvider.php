@@ -3,6 +3,7 @@
 namespace KaueF\Structura\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use KaueF\Structura\Console\Commands\EnumCreation;
 use KaueF\Structura\Console\Commands\CacheCreation;
 use KaueF\Structura\Console\Commands\ActionCreation;
 use KaueF\Structura\Console\Commands\HelperCreation;
@@ -16,6 +17,7 @@ class ConsoleServiceProvider extends ServiceProvider
             $this->commands([
                 ActionCreation::class,
                 CacheCreation::class,
+                EnumCreation::class,
                 HelperCreation::class,
                 ServiceCreation::class,
             ]);

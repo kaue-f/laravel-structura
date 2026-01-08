@@ -65,8 +65,9 @@ trait InteractsWithCreate
         $path = match (strtolower($this->type())) {
             'action' => app_path("Actions/{$name}.php"),
             'cache' => app_path("Caches/{$name}.php"),
-            'service' => app_path("Services/{$name}.php"),
+            'enum' => app_path("Enums/{$name}.php"),
             'helper' => app_path("Helpers/{$name}.php"),
+            'service' => app_path("Services/{$name}.php"),
             default => $this->error("\n⚠️ Unable to resolve the file path. Invalid type: {$this->type()}. \n")
         };
 
