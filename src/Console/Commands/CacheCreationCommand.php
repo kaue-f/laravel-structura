@@ -5,7 +5,7 @@ namespace KaueF\Structura\Console\Commands;
 use Illuminate\Console\Command;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class CacheCreation extends Command
+class CacheCreationCommand extends Command
 {
     use InteractsWithCreate;
 
@@ -32,7 +32,7 @@ class CacheCreation extends Command
      */
     protected function namespaceRoot(): string
     {
-        return 'App\\Caches';
+        return config('structura.namespaces.cache', 'App\\Caches');
     }
 
     /**
@@ -59,14 +59,17 @@ class CacheCreation extends Command
         $path = $this->getPath($name);
         $stub = file_get_contents(filename: __DIR__ . '/../../../stubs/cache.stub');
 
+        $is_raw = $this->optionOrConfig('cache', 'raw');
+        $use_extend = $this->optionOrConfig('cache', 'extend');
+
         $content = str_replace(
             ['{{namespace}}', '{{class}}', '{{extends}}', '{{imports}}', '{{prefix}}'],
             [
                 $this->getNamespace($name),
                 class_basename($name),
-                ($this->option('extend')) ? 'extends CacheSupport' : '',
-                ($this->option('extend')) ?  $this->getImportsStub() : '',
-                ($this->option('raw')) ? '//' : $this->getPrefixStub($name)
+                (!$is_raw && $use_extend) ? 'extends CacheSupport' : '',
+                (!$is_raw && $use_extend) ?  $this->getImportsStub() : '',
+                ($is_raw) ? '//' : $this->getPrefixStub($name)
             ],
             $stub
         );
@@ -100,7 +103,7 @@ class CacheCreation extends Command
     {
         return <<<PHP
 
-    use KaueF\Structura\Support\Cache\CacheSupport;
+    use KaueF\Structura\Support\CacheSupport;
 
     PHP;
     }

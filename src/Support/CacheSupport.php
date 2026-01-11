@@ -1,6 +1,6 @@
 <?php
 
-namespace KaueF\Structura\Support\Cache;
+namespace KaueF\Structura\Support;
 
 use InvalidArgumentException;
 use Illuminate\Support\Facades\Cache;

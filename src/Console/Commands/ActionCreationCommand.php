@@ -5,7 +5,7 @@ namespace KaueF\Structura\Console\Commands;
 use Illuminate\Console\Command;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class ActionCreation extends Command
+class ActionCreationCommand extends Command
 {
     use InteractsWithCreate;
 
@@ -35,7 +35,7 @@ class ActionCreation extends Command
      */
     protected function namespaceRoot(): string
     {
-        return 'App\\Actions';
+        return config('structura.namespaces.action', 'App\\Actions');
     }
 
     /**
@@ -62,13 +62,16 @@ class ActionCreation extends Command
         $path = $this->getPath($name);
         $stub = file_get_contents(__DIR__ . '/../../../stubs/action.stub');
 
+        $is_raw = $this->optionOrConfig('action', 'raw');
+        $use_construct = $this->optionOrConfig('action', 'construct');
+
         $content = str_replace(
             ['{{namespace}}', '{{class}}', '{{method}}', '{{constructor}}'],
             [
                 $this->getNamespace($name),
                 class_basename($name),
-                $this->getMethodStub(),
-                $this->option('construct') ? $this->constructMethod() : ''
+                $this->getMethodStub($is_raw),
+                (!$is_raw && $use_construct) ? $this->constructMethod() : ''
             ],
             $stub
         );
@@ -84,11 +87,21 @@ class ActionCreation extends Command
      */
     protected function validateMethodOptions(): void
     {
-        $methods = collect(['execute', 'handle', 'invokable', 'raw'])
+        if ($this->option('raw')) {
+            $others = collect(['execute', 'handle', 'invokable', 'construct'])
+                ->filter(fn($option) => $this->option($option));
+
+            if ($others->isNotEmpty()) {
+                $this->error("\n⚠️ The --raw option cannot be combined with other options.\n");
+                exit(self::FAILURE);
+            }
+        }
+
+        $methods = collect(['execute', 'handle', 'invokable'])
             ->filter(fn($option) => $this->option($option));
 
         if ($methods->count() > 1) {
-            $this->error("\n⚠️ Choose only one method option: --execute, --handle, --invokable or --raw.\n");
+            $this->error("\n⚠️ Choose only one method option: --execute, --handle or --invokable.\n");
             exit(self::FAILURE);
         }
     }
@@ -98,13 +111,16 @@ class ActionCreation extends Command
      * 
      * @return string
      */
-    protected function getMethodStub(): string
+    protected function getMethodStub(bool $is_raw = false): string
     {
+        if ($is_raw)
+            return '//';
+
         return match (true) {
-            $this->option('handle') => $this->handleMethod(),
-            $this->option('invokable') => $this->invokableMethod(),
-            $this->option('raw') => '//',
-            default => $this->executeMethod(),
+            $this->optionOrConfig('action', 'execute') => $this->executeMethod(),
+            $this->optionOrConfig('action', 'handle') => $this->handleMethod(),
+            $this->optionOrConfig('action', 'invokable') => $this->invokableMethod(),
+            default => '//',
         };
     }
 

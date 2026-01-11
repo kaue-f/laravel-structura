@@ -3,10 +3,9 @@
 namespace KaueF\Structura\Console\Commands;
 
 use Illuminate\Console\Command;
-use PhpParser\Node\Expr\FuncCall;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class EnumCreation extends Command
+class EnumCreationCommand extends Command
 {
     use InteractsWithCreate;
 
@@ -35,7 +34,7 @@ class EnumCreation extends Command
      */
     protected function namespaceRoot(): string
     {
-        return 'App\\Enums';
+        return config('structura.namespaces.enum', 'App\\Enums');
     }
 
     /**
@@ -65,11 +64,11 @@ class EnumCreation extends Command
             ['{{namespace}}', '{{imports}}', '{{enum}}', '{{trait}}', '{{cases}}', '{{methods}}'],
             [
                 $this->getNamespace($name),
-                ($this->option('trait')) ? $this->getImportsStub() : '',
+                ($this->optionOrConfig('enum', 'trait')) ? $this->getImportsStub() : '',
                 $this->getEnumStub($name),
-                ($this->option('trait')) ?  $this->getTraitStub() : '',
+                ($this->optionOrConfig('enum', 'trait')) ?  $this->getTraitStub() : '',
                 $this->getEnumCases(),
-                ($this->option('label')) ? $this->getLabelMethod() : ''
+                ($this->optionOrConfig('enum', 'label')) ? $this->getLabelMethod() : ''
             ],
             $stub
         );
@@ -100,7 +99,7 @@ class EnumCreation extends Command
      */
     protected function getEnumStub(string $name): string
     {
-        $type = $this->option('backed');
+        $type = $this->optionValueOrConfig('enum', 'backed');
         $enum = class_basename($name);
 
         if (!$type)
@@ -140,7 +139,7 @@ class EnumCreation extends Command
             return '    //';
         }
 
-        $backed = $this->option('backed');
+        $backed =  $this->optionValueOrConfig('enum', 'backed');
 
         return collect(explode(',', $this->option('cases')))
             ->map(fn($case) => trim($case))

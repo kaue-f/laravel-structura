@@ -5,7 +5,7 @@ namespace KaueF\Structura\Console\Commands;
 use Illuminate\Console\Command;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class ServiceCreation extends Command
+class ServiceCreationCommand extends Command
 {
     use InteractsWithCreate;
 
@@ -32,7 +32,7 @@ class ServiceCreation extends Command
      */
     protected function namespaceRoot(): string
     {
-        return 'App\\Services';
+        return config('structura.namespaces.service', 'App\\Services');
     }
 
     /**
@@ -97,8 +97,9 @@ class ServiceCreation extends Command
     protected function getMethodStub(): string
     {
         return match (true) {
-            $this->option('raw') => '//',
-            default => $this->constructMethod(),
+            $this->optionOrConfig('service', 'raw')  => '//',
+            $this->optionOrConfig('service', 'construct')  => $this->constructMethod(),
+            default => '//',
         };
     }
 

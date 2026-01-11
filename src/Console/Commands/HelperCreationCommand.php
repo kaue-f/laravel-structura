@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class HelperCreation extends Command
+class HelperCreationCommand extends Command
 {
     use InteractsWithCreate;
 
@@ -36,7 +36,7 @@ class HelperCreation extends Command
      */
     protected function namespaceRoot(): string
     {
-        return 'App\\Helpers';
+        return config('structura.namespaces.helper', 'App\\Helpers');
     }
 
     /**
@@ -59,16 +59,19 @@ class HelperCreation extends Command
         $this->validateMethodOptions();
         $this->info("🚀 Creating new helper...");
 
-        if ($this->option('stub') && !$this->argument('name'))
+        $use_stub = $this->optionOrConfig('helper', 'stub');
+        $use_global = $this->optionOrConfig('helper', 'global');
+
+        if ($use_stub && !$this->argument('name'))
             $this->createHelperStub();
 
-        if (!$this->option('stub') && !$this->argument('name')) {
+        if (!$use_stub && !$this->argument('name')) {
             $this->error("\n❌ Helper name is required.\n");
             return self::FAILURE;
         }
 
-        if ($this->argument('name') && !$this->option('stub')) {
-            ($this->option('global'))
+        if ($this->argument('name') && !$use_stub) {
+            ($use_global)
                 ? $this->createGlobalHelper()
                 : $this->createHelper();
         }
@@ -140,12 +143,14 @@ class HelperCreation extends Command
         $path = $this->getPath($name);
         $stub = file_get_contents(__DIR__ . '/../../../stubs/helper.stub');
 
+        $is_raw = $this->optionOrConfig('helper', 'raw');
+
         $content = str_replace(
             ['{{namespace}}', '{{class}}', '{{exemple}}'],
             [
                 $this->getNamespace($name),
                 class_basename($name),
-                ($this->option('raw')) ? '//' : $this->exampleMethod(),
+                ($is_raw) ? '//' : $this->exampleMethod(),
             ],
             $stub
         );

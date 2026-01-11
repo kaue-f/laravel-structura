@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Caches;
+namespace Tests\Feature;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\File;

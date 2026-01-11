@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Process;
 
 trait InteractsWithCreate
 {
+    protected $ds = DIRECTORY_SEPARATOR;
     abstract protected function namespaceRoot(): string;
     abstract protected function type(): string;
 
@@ -62,17 +63,24 @@ trait InteractsWithCreate
      */
     protected function getPath($name): string
     {
-        $path = match (strtolower($this->type())) {
-            'action' => app_path("Actions/{$name}.php"),
-            'cache' => app_path("Caches/{$name}.php"),
-            'enum' => app_path("Enums/{$name}.php"),
-            'helper' => app_path("Helpers/{$name}.php"),
-            'service' => app_path("Services/{$name}.php"),
+        $type = strtolower($this->type());
+
+        $path_default = match ($type) {
+            'action' => app_path('Actions'),
+            'cache' => app_path('Caches'),
+            'dto' => app_path('DTOs'),
+            'enum' => app_path('Enums'),
+            'helper' => app_path('Helpers'),
+            'service' => app_path('Services'),
+            'trait' => app_path('Concerns'),
             default => $this->error("\n⚠️ Unable to resolve the file path. Invalid type: {$this->type()}. \n")
         };
 
-        if (empty($path))
+        if (empty($path_default))
             return exit(1);
+
+        $path = config("structura.paths.{$type}", $path_default);
+        $path .= "{$this->ds}{$name}.php";
 
         if (File::exists($path)) {
             $this->warn("\n⚠️  {$this->formatType()} already exists!\n");
@@ -130,5 +138,29 @@ trait InteractsWithCreate
         (app()->environment('production'))
             ? $this->comment("\n" . 'ℹ️ Run "composer dump-autoload" if needed.')
             : Process::run('composer dump-autoload')->output();
+    }
+
+    protected function optionOrConfig(string $key, string $option, bool $default = false): bool
+    {
+        if ($this->option($option))
+            return true;
+
+        if (config()->has("structura.default_optins.{$key}.{$option}"))
+            return (bool) config("structura.default_optins.{$key}.{$option}", $default);
+
+        return $default;
+    }
+
+    protected function optionValueOrConfig(string $key, string $option, ?string $default = null): ?string
+    {
+        $value = $this->option($option);
+
+        if ($value !== null)
+            return $value;
+
+        if (config()->has("structura.default_optins.{$key}.{$option}"))
+            return config("structura.default_optins.{$key}.{$option}", $default);
+
+        return $default;
     }
 }
