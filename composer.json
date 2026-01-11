@@ -25,7 +25,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Structura\\": "src/"
+            "KaueF\\Structura\\": "src/"
         }
     },
     "autoload-dev": {
@@ -36,7 +36,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Structura\\Providers\\ConsoleServiceProvider"
+                "KaueF\\Structura\\Providers\\ConsoleServiceProvider"
             ]
         }
     },

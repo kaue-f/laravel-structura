@@ -1,12 +1,12 @@
 <?php
 
-namespace Structura\Support\Cache;
+namespace KaueF\Structura\Support;
 
 use InvalidArgumentException;
 use Illuminate\Support\Facades\Cache;
-use Structura\Contracts\Cache\CacheInterface;
+use KaueF\Structura\Contracts\Cache\CacheInterface;
 
-abstract class CacheService implements CacheInterface
+abstract class CacheSupport implements CacheInterface
 {
     /**
      * Cache key prefix.
