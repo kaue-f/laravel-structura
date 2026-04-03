@@ -2,11 +2,11 @@
 
 namespace KaueF\Structura\Console\Commands;
 
+use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Illuminate\Console\Command;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class DTOCreationCommand extends Command
+class DTOCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -30,87 +30,102 @@ class DTOCreationCommand extends Command
     protected $description = 'Create a new DTO';
 
     /**
-     * The root namespace for dto.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'DTO';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.dto', 'App\\DTOs');
+        return __DIR__.'/../../../stubs/dto.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'dto';
+        return config('structura.namespaces.dto', $rootNamespace.'\DTOs');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->validateMethodOptions();
-        $this->info("🚀 Creating new DTO...");
+        // Name treatment manually to respect user's Str::replace
+        $this->input->setArgument('name', Str::replace('Dto', 'DTO', $this->argument('name')));
 
-        $name = $this->getClassName($this->argument('name'));
-        $name = Str::replace('Dto', 'DTO', $name);
-        $path = $this->getPath($name);
-        $stub = file_get_contents(__DIR__ . '/../../../stubs/dto.stub');
+        if ($this->validateMethodOptions() === false) {
+            return self::FAILURE;
+        }
+
+        return parent::handle();
+    }
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
 
         $is_raw = $this->optionOrConfig('dto', 'raw');
 
-        $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{final}}', '{{readonly}}', '{{trait}}', '{{imports}}', '{{constructor}}'],
+        return str_replace(
+            ['{{final}}', '{{readonly}}', '{{trait}}', '{{imports}}', '{{constructor}}'],
             [
-                $this->getNamespace($name),
-                class_basename($name),
-                (!$is_raw && !$this->optionOrConfig('dto', 'no-final')) ? 'final ' : '',
-                (!$is_raw && !$this->optionOrConfig('dto', 'no-readonly')) ? 'readonly ' : '',
-                (!$is_raw && $this->optionOrConfig('dto', 'trait')) ? $this->getTraitStub() : '',
-                (!$is_raw && $this->optionOrConfig('dto', 'trait')) ?  $this->getImportsStub() : '',
-                (!$is_raw && !$this->optionOrConfig('dto', 'no-construct')) ? $this->constructMethod() : '//'
+                (! $is_raw && ! $this->optionOrConfig('dto', 'no-final')) ? 'final ' : '',
+                (! $is_raw && ! $this->optionOrConfig('dto', 'no-readonly')) ? 'readonly ' : '',
+                (! $is_raw && $this->optionOrConfig('dto', 'trait')) ? $this->getTraitStub() : '',
+                (! $is_raw && $this->optionOrConfig('dto', 'trait')) ? $this->getImportsStub() : '',
+                (! $is_raw && ! $this->optionOrConfig('dto', 'no-construct')) ? $this->constructMethod() : '//',
             ],
             $stub
         );
-
-        $this->finishCreation($path, $content);
-        return self::SUCCESS;
     }
 
     /**
      * Validate the method options.
-     * 
-     * @return void
      */
-    protected function validateMethodOptions(): void
+    protected function validateMethodOptions(): bool
     {
-        if (! $this->option('raw'))
-            return;
-
-        $optins = collect(['no-construct', 'no-final', 'no-readonly', 'trait'])
-            ->filter(fn($option) => $this->option($option));
-
-        if ($optins->isNotEmpty()) {
-            $this->error("\n⚠️ The --raw option cannot be combined with other options.\n");
-            exit(self::FAILURE);
+        if (! $this->option('raw')) {
+            return true;
         }
+
+        $options = collect(['no-construct', 'no-final', 'no-readonly', 'trait'])
+            ->filter(fn ($option) => $this->option($option));
+
+        if ($options->isNotEmpty()) {
+            $this->error("\n⚠️ The --raw option cannot be combined with other options.\n");
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * Get the trait stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getTraitStub(): string
     {
-        return <<<PHP
+        return <<<'PHP'
         use InteractsWithDTO;
 
     
@@ -119,8 +134,6 @@ class DTOCreationCommand extends Command
 
     /**
      * Get the imports stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getImportsStub(): string
     {
@@ -133,12 +146,10 @@ class DTOCreationCommand extends Command
 
     /**
      * Get the construct method stub.
-     * 
-     * @return string
      */
     protected function constructMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
         public function __construct(
             // Define your DTO properties here
         ) {}

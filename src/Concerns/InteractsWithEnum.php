@@ -2,8 +2,9 @@
 
 namespace KaueF\Structura\Concerns;
 
-use UnitEnum;
+use Illuminate\Validation\Rules\In;
 use KaueF\Structura\Support\EnumSupport;
+use UnitEnum;
 
 trait InteractsWithEnum
 {
@@ -43,7 +44,7 @@ trait InteractsWithEnum
         return EnumSupport::toJson(enum: static::class);
     }
 
-    public static function rule(): \Illuminate\Validation\Rules\In
+    public static function rule(): In
     {
         return EnumSupport::validationRule(enum: static::class);
     }

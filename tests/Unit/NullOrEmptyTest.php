@@ -13,11 +13,9 @@ class NullOrEmptyTest extends TestCase
 
     /**
      * Test value is null.
-     * 
+     *
      * Result from test = No
      * Result from test 1 = null
-     * 
-     * @return void
      */
     public function test_null(): void
     {
@@ -33,7 +31,7 @@ class NullOrEmptyTest extends TestCase
 
     /**
      * Test value string is empty.
-     * 
+     *
      * Result from test = True
      * Result from test 1 = True
      * Result from test 2 = No
@@ -41,9 +39,6 @@ class NullOrEmptyTest extends TestCase
      * Result from test 4 = True
      * Result from test 5 = True
      * Result from test 6 = No
-     * 
-     * 
-     * @return void
      */
     public function test_empty_string(): void
     {
@@ -79,14 +74,12 @@ class NullOrEmptyTest extends TestCase
 
     /**
      * Test value array is empty.
-     * 
+     *
      * Result from test = True
      * Result from test 1 = True
      * Result from test 2 = True
      * Result from test 3 = No
      * Result from test 4 = No
-     * 
-     * @return void
      */
     public function test_array(): void
     {

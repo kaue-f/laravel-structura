@@ -8,7 +8,7 @@ interface CacheInterface
 
     public function get(string $key, mixed $default = null): mixed;
 
-    public function put(string $key, mixed $value, int|null $seconds = null): bool;
+    public function put(string $key, mixed $value, ?int $seconds = null): bool;
 
     public function forever(string $key, mixed $value): bool;
 

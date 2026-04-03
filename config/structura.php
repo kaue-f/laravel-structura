@@ -63,9 +63,9 @@ return [
     |
     | These options act as sensible defaults and can usually be overridden
     | at runtime or per-command when needed.
-    |   
+    |
     */
-    'default_optins' => [
+    'default_options' => [
         'action' => [
             'construct' => false,
             'execute' => true,
@@ -90,10 +90,9 @@ return [
             'backed' => 'string',  // 'string'|'int'|null
         ],
         'helper' => [
-            'example' => true,
+            'example' => false,
             'global' => false,
             'stub' => false,
-            'raw' => false,
         ],
         'service' => [
             'construct' => true,

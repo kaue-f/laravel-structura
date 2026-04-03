@@ -2,11 +2,11 @@
 
 namespace KaueF\Structura\Console\Commands;
 
+use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Illuminate\Console\Command;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class TraitCreationCommand extends Command
+class TraitCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -25,50 +25,43 @@ class TraitCreationCommand extends Command
     protected $description = 'Create a new trait class';
 
     /**
-     * The root namespace for trait.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'Trait';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.trait', 'App\\Concerns');
+        return __DIR__.'/../../../stubs/trait.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'trait';
+        return config('structura.namespaces.trait', $rootNamespace.'\Concerns');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->info("🚀 Creating new trait...");
+        $name = Str::replace('Trait', '', $this->argument('name'));
+        $this->input->setArgument('name', $name);
 
-        $name = $this->getClassName($this->argument('name'));
-        $name = Str::replace('Trait', '', $name);
-
-        $path = $this->getPath($name);
-        $stub = file_get_contents(__DIR__ . '/../../../stubs/trait.stub');
-
-        $content = str_replace(
-            ['{{namespace}}', '{{class}}'],
-            [
-                $this->getNamespace($name),
-                class_basename($name),
-            ],
-            $stub
-        );
-
-        $this->finishCreation($path, $content);
-        return self::SUCCESS;
+        return parent::handle();
     }
 }

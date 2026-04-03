@@ -1,8 +1,8 @@
 <?php
 
-namespace {{namespace}};
+namespace {{ namespace }};
 {{imports}}
-{{final}}{{readonly}}class {{class}}
+{{final}}{{readonly}}class {{ class }}
 {
 {{trait}}{{constructor}}
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace {{namespace}};
+namespace {{ namespace }};
 
-class {{class}}
+class {{ class }}
 {
     {{constructor}}{{method}}
 }

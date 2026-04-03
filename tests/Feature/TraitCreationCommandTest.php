@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class TraitCreationCommandTest extends TestCase
 {
@@ -16,8 +16,6 @@ class TraitCreationCommandTest extends TestCase
 
     /**
      * Test trait creation.
-     *
-     * @return void
      */
     public function test_trait_creation(): void
     {

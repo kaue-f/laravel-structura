@@ -12,8 +12,7 @@ trait InteractsWithDTO
      * Array values are automatically mapped to the constructor parameters
      * using each parameter name as the corresponding key.
      *
-     * @param array<string, mixed> $data Data used to create the DTO.
-     * @return static
+     * @param  array<string, mixed>  $data  Data used to create the DTO.
      */
     public static function fromArray(array $data): static
     {
@@ -21,7 +20,7 @@ trait InteractsWithDTO
 
         return $reflection->newInstanceArgs(
             array_map(
-                fn($property) => $data[$property->getName()] ?? null,
+                fn ($property) => $data[$property->getName()] ?? null,
                 $reflection->getConstructor()->getParameters()
             )
         );
@@ -29,8 +28,6 @@ trait InteractsWithDTO
 
     /**
      * Converts the DTO to an associative array.
-     * 
-     * @return array
      */
     public function toArray(): array
     {
@@ -39,7 +36,7 @@ trait InteractsWithDTO
 
     /**
      * Returns data to be serialized when converting the object to JSON.
-     * 
+     *
      * @return string JSON representation of the DTO.
      */
     public function toJson(): string

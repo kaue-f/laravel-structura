@@ -2,10 +2,10 @@
 
 namespace KaueF\Structura\Console\Commands;
 
-use Illuminate\Console\Command;
+use Illuminate\Console\GeneratorCommand;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class EnumCreationCommand extends Command
+class EnumCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -28,59 +28,88 @@ class EnumCreationCommand extends Command
     protected $description = 'Create a new enum';
 
     /**
-     * The root namespace for enums.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'Enum';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.enum', 'App\\Enums');
+        return __DIR__.'/../../../stubs/enum.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'enum';
+        return config('structura.namespaces.enum', $rootNamespace.'\Enums');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->info("🚀 Creating new action...");
+        // Simple validation directly in handle
+        $type = $this->optionValueOrConfig('enum', 'backed');
+        if ($type && ! in_array($type, ['string', 'int'])) {
+            $this->error('❌ Invalid backed type. Use string or int.');
 
-        $name = $this->getClassName($this->argument('name'));
-        $path = $this->getPath($name);
-        $stub = file_get_contents(filename: __DIR__ . '/../../../stubs/enum.stub');
+            return self::FAILURE;
+        }
 
-        $content = str_replace(
-            ['{{namespace}}', '{{imports}}', '{{enum}}', '{{trait}}', '{{cases}}', '{{methods}}'],
+        return parent::handle();
+    }
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
+
+        return str_replace(
+            ['{{imports}}', '{{trait}}', '{{cases}}', '{{methods}}'],
             [
-                $this->getNamespace($name),
                 ($this->optionOrConfig('enum', 'trait')) ? $this->getImportsStub() : '',
-                $this->getEnumStub($name),
-                ($this->optionOrConfig('enum', 'trait')) ?  $this->getTraitStub() : '',
+                ($this->optionOrConfig('enum', 'trait')) ? $this->getTraitStub() : '',
                 $this->getEnumCases(),
-                ($this->optionOrConfig('enum', 'label')) ? $this->getLabelMethod() : ''
+                ($this->optionOrConfig('enum', 'label')) ? $this->getLabelMethod() : '',
             ],
-            $stub
+            $this->replaceEnumName($stub, $name)
         );
+    }
 
-        $this->finishCreation($path, $content);
-        return self::SUCCESS;
+    /**
+     * Replace Enum Name format (e.g. Backed Enum mapping)
+     */
+    protected function replaceEnumName(string $stub, string $name): string
+    {
+        $type = $this->optionValueOrConfig('enum', 'backed');
+        $enum = class_basename($name);
+
+        $replacement = (! $type) ? $enum : "{$enum}: {$type}";
+
+        return str_replace(['enum '.$enum], ['enum '.$replacement], $stub);
     }
 
     /**
      * Get the imports stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getImportsStub(): string
     {
@@ -92,36 +121,11 @@ class EnumCreationCommand extends Command
     }
 
     /**
-     * Get backed enum based on the selected option.
-     * 
-     * @param string $name
-     * @return string
-     */
-    protected function getEnumStub(string $name): string
-    {
-        $type = $this->optionValueOrConfig('enum', 'backed');
-        $enum = class_basename($name);
-
-        if (!$type)
-            return $enum;
-
-        if (!in_array($type, ['string', 'int'])) {
-            $this->line("$type \n {$this->option('backed')}");
-            $this->error("❌ Invalid backed type. Use string or int.");
-            exit(self::FAILURE);
-        }
-
-        return "{$enum}: {$type}";
-    }
-
-    /**
      * Get the trait stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getTraitStub(): string
     {
-        return <<<PHP
+        return <<<'PHP'
         use InteractsWithEnum;
 
     
@@ -130,8 +134,6 @@ class EnumCreationCommand extends Command
 
     /**
      * Get the enum cases based on the selected option.
-     * 
-     * @return string
      */
     protected function getEnumCases(): string
     {
@@ -139,20 +141,20 @@ class EnumCreationCommand extends Command
             return '    //';
         }
 
-        $backed =  $this->optionValueOrConfig('enum', 'backed');
+        $backed = $this->optionValueOrConfig('enum', 'backed');
 
         return collect(explode(',', $this->option('cases')))
-            ->map(fn($case) => trim($case))
+            ->map(fn ($case) => trim($case))
             ->filter()
             ->map(function ($case, $key) use ($backed) {
                 $name = $this->normalizeEnumCase($case);
 
-                if (!$backed) {
+                if (! $backed) {
                     return "    case {$name};";
                 }
 
                 $value = match ($backed) {
-                    'string' => "'" . strtolower($case) . "'",
+                    'string' => "'".strtolower($case)."'",
                     'int' => $key + 1,
                 };
 
@@ -163,8 +165,6 @@ class EnumCreationCommand extends Command
 
     /**
      * Get the label method stub.
-     * 
-     * @return string
      */
     protected function getLabelMethod(): string
     {
@@ -184,8 +184,6 @@ class EnumCreationCommand extends Command
 
     /**
      * Get the matches based on the selected option.
-     * 
-     * @return string
      */
     protected function getMatches(): string
     {
@@ -194,7 +192,7 @@ class EnumCreationCommand extends Command
         }
 
         return collect(explode(',', $this->option('cases')))
-            ->map(fn($case) => trim($case))
+            ->map(fn ($case) => trim($case))
             ->filter()
             ->map(function ($case) {
                 $self = $this->normalizeEnumCase($case);
@@ -207,9 +205,6 @@ class EnumCreationCommand extends Command
 
     /**
      * Normalize the enum case.
-     * 
-     * @param string $case
-     * @return string
      */
     protected function normalizeEnumCase(string $case): string
     {

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class ServiceCreationCommandTest extends TestCase
 {
@@ -17,8 +17,6 @@ class ServiceCreationCommandTest extends TestCase
     /**
      * Test service creation with __construct method by default.
      * Generate a service with __construct method.
-     *
-     * @return void
      */
     public function test_service_creation_with_construct_method_by_default(): void
     {
@@ -36,8 +34,6 @@ class ServiceCreationCommandTest extends TestCase
     /**
      * Test service creation with raw option.
      * Generate a service without any method.
-     *
-     * @return void
      */
     public function test_service_creation_with_raw_option(): void
     {

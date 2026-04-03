@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class CacheCreationCommandTest extends TestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -17,8 +17,6 @@ class CacheCreationCommandTest extends TestCase
     /**
      * Test cache creation default.
      * Generate an cache class.
-     * 
-     * @return void
      */
     public function test_cache_creation_default(): void
     {
@@ -34,8 +32,6 @@ class CacheCreationCommandTest extends TestCase
     /**
      * Test cache creation with class extending CacheSupport by default.
      * Generate an cache with class extending CacheSupport.
-     * 
-     * @return void
      */
     public function test_cache_creation_with_cache_support_extension(): void
     {
@@ -47,15 +43,13 @@ class CacheCreationCommandTest extends TestCase
         $path = app_path('Caches/SampleCache.php');
         $this->assertTrue(File::exists($path));
         $this->assertStringContainsString('extends CacheSupport', File::get($path));
-        $this->assertStringContainsString('use KaueF\Structura\Support\Cache\CacheSupport;', File::get($path));
+        $this->assertStringContainsString('use KaueF\Structura\Support\CacheSupport;', File::get($path));
         $this->assertStringContainsString("protected string \$prefix = 'sample'", File::get($path));
     }
 
     /**
      * Test cache creation with raw option.
      * Generate a cache without any method.
-     *
-     * @return void
      */
     public function test_cache_creation_with_raw_option(): void
     {

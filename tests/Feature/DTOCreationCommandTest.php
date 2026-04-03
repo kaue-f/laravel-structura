@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class DTOCreationCommandTest extends TestCase
 {
@@ -31,7 +31,7 @@ class DTOCreationCommandTest extends TestCase
     {
         $this->artisan('structura:dto', [
             'name' => 'SampleDTO',
-            '--no-final' => true
+            '--no-final' => true,
         ])
             ->assertExitCode(0);
 
@@ -45,7 +45,7 @@ class DTOCreationCommandTest extends TestCase
     {
         $this->artisan('structura:dto', [
             'name' => 'SampleDTO',
-            '--no-readonly' => true
+            '--no-readonly' => true,
         ])
             ->assertExitCode(0);
 
@@ -59,7 +59,7 @@ class DTOCreationCommandTest extends TestCase
     {
         $this->artisan('structura:dto', [
             'name' => 'SampleDTO',
-            '--no-construct' => true
+            '--no-construct' => true,
         ])
             ->assertExitCode(0);
 
@@ -73,7 +73,7 @@ class DTOCreationCommandTest extends TestCase
     {
         $this->artisan('structura:dto', [
             'name' => 'SampleDTO',
-            '-t' => true
+            '-t' => true,
         ])
             ->assertExitCode(0);
 
@@ -87,8 +87,6 @@ class DTOCreationCommandTest extends TestCase
     /**
      * Test DTO creation with raw option.
      * Generate a DTO without helpers or modifiers
-     * 
-     * @return void
      */
     public function test_dto_creation_with_raw_option(): void
     {

@@ -18,17 +18,16 @@ class StructuraInstallCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Create a new DTO';
+    protected $description = 'Install Structura package';
 
     /**
      * Execute the console command.
-     * 
-     * @return int
      */
     public function handle(): int
     {
         if (file_exists(config_path('structura.php')) && ! $this->option('force')) {
             $this->warn("\nConfig structura.php already exists.\n");
+
             return self::SUCCESS;
         }
 

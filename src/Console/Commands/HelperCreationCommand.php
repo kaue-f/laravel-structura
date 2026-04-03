@@ -2,11 +2,11 @@
 
 namespace KaueF\Structura\Console\Commands;
 
-use Illuminate\Console\Command;
+use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Facades\File;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class HelperCreationCommand extends Command
+class HelperCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -17,10 +17,9 @@ class HelperCreationCommand extends Command
      */
     protected $signature = 'structura:helper 
                             {name? : Helper name}
-                            {--e|example : Add example method to helper (default)}
+                            {--e|example : Add example method to helper}
                             {--g|global : Create a global helper registered in composer}
-                            {--s|stub : Create helper from package stub}
-                            {--r|raw : Create a standalone helper without methods}';
+                            {--s|stub : Create helper from package stub}';
 
     /**
      * The console command description.
@@ -30,179 +29,188 @@ class HelperCreationCommand extends Command
     protected $description = 'Create a new helper class';
 
     /**
-     * The root namespace for actions.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'Helper';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.helper', 'App\\Helpers');
+        return __DIR__.'/../../../stubs/helper.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'helper';
+        return config('structura.namespaces.helper', $rootNamespace.'\Helpers');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->validateMethodOptions();
-        $this->info("🚀 Creating new helper...");
+        if ($this->validateMethodOptions() === false) {
+            return self::FAILURE;
+        }
 
         $use_stub = $this->optionOrConfig('helper', 'stub');
         $use_global = $this->optionOrConfig('helper', 'global');
 
-        if ($use_stub && !$this->argument('name'))
-            $this->createHelperStub();
+        if ($use_stub && ! $this->argument('name')) {
+            return $this->createHelperStub();
+        }
 
-        if (!$use_stub && !$this->argument('name')) {
+        if (! $use_stub && ! $this->argument('name')) {
             $this->error("\n❌ Helper name is required.\n");
+
             return self::FAILURE;
         }
 
-        if ($this->argument('name') && !$use_stub) {
-            ($use_global)
+        if ($this->argument('name') && ! $use_stub) {
+            return ($use_global)
                 ? $this->createGlobalHelper()
-                : $this->createHelper();
+                : parent::handle();
         }
 
         return self::SUCCESS;
     }
 
     /**
-     * Create a helper from package stub.
-     * 
-     * @return void
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
      */
-    protected function createHelperStub()
+    protected function buildClass($name)
     {
-        $path = app_path("Helpers/helpers.php");
+        $stub = parent::buildClass($name);
+        $is_example = $this->optionOrConfig('helper', 'example');
 
-        if (file_exists(($path))) {
+        return str_replace(
+            ['{{example}}'],
+            [($is_example) ? $this->exampleMethod() : '//'],
+            $stub
+        );
+    }
+
+    /**
+     * Create a helper from package stub.
+     */
+    protected function createHelperStub(): int
+    {
+        $path = app_path('Helpers/helpers.php');
+
+        if (file_exists($path)) {
             $this->warn("\n⚠️ Helper from package stub already exists!\n");
-            exit(self::FAILURE);
+
+            return self::FAILURE;
         }
 
         File::ensureDirectoryExists(dirname($path));
         copy(
-            __DIR__ . '/../../Helpers/helpers.php',
+            __DIR__.'/../../Helpers/helpers.php',
             $path
         );
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $this->error("\n❌ Failed to create helper from package stub.\n");
-            exit(self::FAILURE);
+
+            return self::FAILURE;
         }
 
         $this->registerComposer('helpers.php');
         $this->info("\n✨ Helper from package stub created successfully!");
         $this->line("📝 [{$path}] \n");
+
+        return self::SUCCESS;
     }
 
     /**
      * Create a global helper.
-     * 
-     * @return void
      */
-    protected function createGlobalHelper()
+    protected function createGlobalHelper(): int
     {
-        $name = $this->getClassName($this->argument('name'));
-        $name = str_ireplace(
-            class_basename($name),
-            strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', class_basename($name))),
-            $name
-        );
-        $path = $this->getPath($name);
+        $qualifiedName = $this->qualifyClass($this->getNameInput());
 
-        File::ensureDirectoryExists(dirname($path));
+        $basename = class_basename($qualifiedName);
+        $snakeName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $basename));
+
+        $qualifiedName = str_replace($basename, $snakeName, $qualifiedName);
+
+        $path = $this->getPath($qualifiedName);
+
+        if (File::exists($path)) {
+            $this->warn("\n⚠️  {$this->type} already exists!\n");
+
+            return self::FAILURE;
+        }
+
+        $this->makeDirectory($path);
         File::put($path, $this->getPHP());
 
-        $this->registerComposer("{$name}.php");
+        $this->registerComposer("{$snakeName}.php");
         $this->info("\n✨ Helper global created successfully!");
         $this->line("📝 [{$path}] \n");
-    }
 
-    /**
-     * Create a class of helper.
-     * 
-     * @return void
-     */
-    protected function createHelper()
-    {
-        $name = $this->getClassName($this->argument('name'));
-        $path = $this->getPath($name);
-        $stub = file_get_contents(__DIR__ . '/../../../stubs/helper.stub');
-
-        $is_raw = $this->optionOrConfig('helper', 'raw');
-
-        $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{exemple}}'],
-            [
-                $this->getNamespace($name),
-                class_basename($name),
-                ($is_raw) ? '//' : $this->exampleMethod(),
-            ],
-            $stub
-        );
-
-        $this->finishCreation($path, $content);
+        return self::SUCCESS;
     }
 
     /**
      * Validate the method options.
-     * 
-     * @return void
      */
-    protected function validateMethodOptions(): void
+    protected function validateMethodOptions(): bool
     {
-        $methods = collect(['example', 'stub', 'global', 'raw'])
-            ->filter(fn($option) => $this->option($option));
+        $methods = collect(['example', 'stub', 'global'])
+            ->filter(fn ($option) => $this->option($option));
 
         if ($methods->count() > 1) {
-            $this->error("\n⚠️ Choose only one method option: --example, --stub, --global or raw.\n");
-            exit(self::FAILURE);
+            $this->error("\n⚠️ Choose only one method option: --example, --stub or --global.\n");
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Get the example method stub.
-     * 
-     * @return string
      */
     protected function exampleMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     /**
          * Example helper method.
          * 
-         * @param mixed \$value
+         * @param mixed $value
          * @return mixed
          */
-        public static function example(mixed \$value): mixed
+        public static function example(mixed $value): mixed
         {
-            return \$value;
+            return $value;
         }
     PHP;
     }
 
     /**
      * Get the PHP stub.
-     * 
-     * @return string
      */
     protected function getPHP(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     <?php
     
     
@@ -212,9 +220,6 @@ class HelperCreationCommand extends Command
     /**
      * Register the helper in composer.json
      * Run composer dump-autoload in process end, when not production.
-     * 
-     * @param string $helper
-     * @return void
      */
     protected function registerComposer(string $helper): void
     {
@@ -225,8 +230,9 @@ class HelperCreationCommand extends Command
 
         $helper_path = "app/Helpers/{$helper}";
 
-        if (! in_array($helper_path, $files, true))
+        if (! in_array($helper_path, $files, true)) {
             $files[] = $helper_path;
+        }
 
         sort($files, SORT_STRING | SORT_FLAG_CASE);
         $composer['autoload']['files'] = $files;

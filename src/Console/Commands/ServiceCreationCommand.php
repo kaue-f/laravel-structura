@@ -2,10 +2,10 @@
 
 namespace KaueF\Structura\Console\Commands;
 
-use Illuminate\Console\Command;
+use Illuminate\Console\GeneratorCommand;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class ServiceCreationCommand extends Command
+class ServiceCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -26,91 +26,99 @@ class ServiceCreationCommand extends Command
     protected $description = 'Create a new service class';
 
     /**
-     * The root namespace for services.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'Service';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.service', 'App\\Services');
+        return __DIR__.'/../../../stubs/service.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'service';
+        return config('structura.namespaces.service', $rootNamespace.'\Services');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->validateMethodOptions();
-        $this->info("🚀 Creating new service...");
+        if ($this->validateMethodOptions() === false) {
+            return self::FAILURE;
+        }
 
-        $name = $this->getClassName($this->argument('name'));
-        $path = $this->getPath($name);
-        $stub = file_get_contents(__DIR__ . '/../../../stubs/service.stub');
+        return parent::handle();
+    }
 
-        $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{method}}'],
-            [
-                $this->getNamespace($name),
-                class_basename($name),
-                $this->getMethodStub()
-            ],
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
+
+        return str_replace(
+            ['{{method}}'],
+            [$this->getMethodStub()],
             $stub
         );
-
-        $this->finishCreation($path, $content);
-        return self::SUCCESS;
     }
 
     /**
      * Validate the method options.
-     * 
-     * @return void
      */
-    protected function validateMethodOptions(): void
+    protected function validateMethodOptions(): bool
     {
         $methods = collect(['construct', 'raw'])
-            ->filter(fn($option) => $this->option($option));
+            ->filter(fn ($option) => $this->option($option));
 
         if ($methods->count() > 1) {
-            $this->error("⚠️ Choose only one option: --construct or --raw.");
-            exit(self::FAILURE);
+            $this->error('⚠️ Choose only one option: --construct or --raw.');
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Get the method stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getMethodStub(): string
     {
         return match (true) {
-            $this->optionOrConfig('service', 'raw')  => '//',
-            $this->optionOrConfig('service', 'construct')  => $this->constructMethod(),
+            $this->optionOrConfig('service', 'raw') => '//',
+            $this->optionOrConfig('service', 'construct') => $this->constructMethod(),
             default => '//',
         };
     }
 
     /**
      * Get the construct method stub.
-     * 
-     * @return string
      */
     protected function constructMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     public function __construct()
         {
             //

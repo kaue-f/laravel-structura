@@ -2,10 +2,10 @@
 
 namespace KaueF\Structura\Console\Commands;
 
-use Illuminate\Console\Command;
+use Illuminate\Console\GeneratorCommand;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class CacheCreationCommand extends Command
+class CacheCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -16,7 +16,7 @@ class CacheCreationCommand extends Command
      */
     protected $signature = 'structura:cache {name : Cache name}
                             {--e|extend : Create a cache class extending CacheSupport}
-                            {--r|raw : Create a standalone cache class without CacheSupport extensio}';
+                            {--r|raw : Create a standalone cache class without CacheSupport extension}';
 
     /**
      * The console command description.
@@ -26,78 +26,90 @@ class CacheCreationCommand extends Command
     protected $description = 'Create a new cache class';
 
     /**
-     * The root namespace for actions.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'Cache';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.cache', 'App\\Caches');
+        return __DIR__.'/../../../stubs/cache.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'cache';
+        return config('structura.namespaces.cache', $rootNamespace.'\Caches');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->validateMethodOptions();
-        $this->info("🚀 Creating new cache...");
+        if ($this->validateMethodOptions() === false) {
+            return self::FAILURE;
+        }
 
-        $name = $this->getClassName($this->argument('name'));
-        $path = $this->getPath($name);
-        $stub = file_get_contents(filename: __DIR__ . '/../../../stubs/cache.stub');
+        return parent::handle();
+    }
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
 
         $is_raw = $this->optionOrConfig('cache', 'raw');
         $use_extend = $this->optionOrConfig('cache', 'extend');
 
-        $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{extends}}', '{{imports}}', '{{prefix}}'],
+        return str_replace(
+            ['{{extends}}', '{{imports}}', '{{prefix}}'],
             [
-                $this->getNamespace($name),
-                class_basename($name),
-                (!$is_raw && $use_extend) ? 'extends CacheSupport' : '',
-                (!$is_raw && $use_extend) ?  $this->getImportsStub() : '',
-                ($is_raw) ? '//' : $this->getPrefixStub($name)
+                (! $is_raw && $use_extend) ? 'extends CacheSupport' : '',
+                (! $is_raw && $use_extend) ? $this->getImportsStub() : '',
+                ($is_raw) ? '//' : $this->getPrefixStub($name),
             ],
             $stub
         );
-
-        $this->finishCreation($path, $content);
-        return self::SUCCESS;
     }
 
     /**
      * Validate the method options.
-     * 
-     * @return void
      */
-    protected function validateMethodOptions(): void
+    protected function validateMethodOptions(): bool
     {
         $methods = collect(['extend', 'raw'])
-            ->filter(fn($option) => $this->option($option));
+            ->filter(fn ($option) => $this->option($option));
 
         if ($methods->count() > 1) {
-            $this->error("⚠️ Choose only one option: --extend or --raw.");
-            exit(self::FAILURE);
+            $this->error('⚠️ Choose only one option: --extend or --raw.');
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Get the imports stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getImportsStub(): string
     {
@@ -109,14 +121,11 @@ class CacheCreationCommand extends Command
     }
 
     /**
-     * Get the prefix stub. 
-     * 
-     * @param string $name
-     * @return string
+     * Get the prefix stub.
      */
     protected function getPrefixStub(string $name): string
     {
-        $name = strtolower(preg_replace('/Cache$/', '', $name));
+        $name = strtolower(preg_replace('/Cache$/', '', class_basename($name)));
 
         return <<<PHP
     /**

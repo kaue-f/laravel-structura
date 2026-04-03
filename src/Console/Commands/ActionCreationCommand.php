@@ -2,10 +2,10 @@
 
 namespace KaueF\Structura\Console\Commands;
 
-use Illuminate\Console\Command;
+use Illuminate\Console\GeneratorCommand;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class ActionCreationCommand extends Command
+class ActionCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -29,92 +29,106 @@ class ActionCreationCommand extends Command
     protected $description = 'Create a new action class';
 
     /**
-     * The root namespace for actions.
+     * The type of class being generated.
      *
      * @var string
      */
-    protected function namespaceRoot(): string
+    protected $type = 'Action';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub()
     {
-        return config('structura.namespaces.action', 'App\\Actions');
+        return __DIR__.'/../../../stubs/action.stub';
     }
 
     /**
-     * The type of the console command.
+     * Get the default namespace for the class.
      *
-     * @var string
+     * @param  string  $rootNamespace
+     * @return string
      */
-    protected function type(): string
+    protected function getDefaultNamespace($rootNamespace)
     {
-        return 'action';
+        return config('structura.namespaces.action', $rootNamespace.'\Actions');
     }
 
     /**
      * Execute the console command.
-     * 
-     * @return int
+     *
+     * @return int|bool|null
      */
     public function handle()
     {
-        $this->validateMethodOptions();
-        $this->info("🚀 Creating new action...");
+        if ($this->validateMethodOptions() === false) {
+            return self::FAILURE;
+        }
 
-        $name = $this->getClassName($this->argument('name'));
-        $path = $this->getPath($name);
-        $stub = file_get_contents(__DIR__ . '/../../../stubs/action.stub');
+        return parent::handle();
+    }
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
 
         $is_raw = $this->optionOrConfig('action', 'raw');
         $use_construct = $this->optionOrConfig('action', 'construct');
 
-        $content = str_replace(
-            ['{{namespace}}', '{{class}}', '{{method}}', '{{constructor}}'],
+        return str_replace(
+            ['{{method}}', '{{constructor}}'],
             [
-                $this->getNamespace($name),
-                class_basename($name),
                 $this->getMethodStub($is_raw),
-                (!$is_raw && $use_construct) ? $this->constructMethod() : ''
+                (! $is_raw && $use_construct) ? $this->constructMethod() : '',
             ],
             $stub
         );
-
-        $this->finishCreation($path, $content);
-        return self::SUCCESS;
     }
 
     /**
      * Validate the method options.
-     * 
-     * @return void
      */
-    protected function validateMethodOptions(): void
+    protected function validateMethodOptions(): bool
     {
         if ($this->option('raw')) {
             $others = collect(['execute', 'handle', 'invokable', 'construct'])
-                ->filter(fn($option) => $this->option($option));
+                ->filter(fn ($option) => $this->option($option));
 
             if ($others->isNotEmpty()) {
                 $this->error("\n⚠️ The --raw option cannot be combined with other options.\n");
-                exit(self::FAILURE);
+
+                return false;
             }
         }
 
         $methods = collect(['execute', 'handle', 'invokable'])
-            ->filter(fn($option) => $this->option($option));
+            ->filter(fn ($option) => $this->option($option));
 
         if ($methods->count() > 1) {
             $this->error("\n⚠️ Choose only one method option: --execute, --handle or --invokable.\n");
-            exit(self::FAILURE);
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Get the method stub based on the selected option.
-     * 
-     * @return string
      */
     protected function getMethodStub(bool $is_raw = false): string
     {
-        if ($is_raw)
+        if ($is_raw) {
             return '//';
+        }
 
         return match (true) {
             $this->optionOrConfig('action', 'execute') => $this->executeMethod(),
@@ -126,12 +140,10 @@ class ActionCreationCommand extends Command
 
     /**
      * Get the execute method stub.
-     * 
-     * @return string
      */
     protected function executeMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     public function execute()
         {
             //
@@ -141,12 +153,10 @@ class ActionCreationCommand extends Command
 
     /**
      * Get the handle method stub.
-     * 
-     * @return string
      */
     protected function handleMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     public function handle()
         {
             //
@@ -156,12 +166,10 @@ class ActionCreationCommand extends Command
 
     /**
      * Get the invokable method stub.
-     * 
-     * @return string
      */
     protected function invokableMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     public function __invoke()
         {
             //
@@ -171,12 +179,10 @@ class ActionCreationCommand extends Command
 
     /**
      * Get the construct method stub.
-     * 
-     * @return string
      */
     protected function constructMethod(): string
     {
-        return <<<PHP
+        return <<<'PHP'
     public function __construct()
         {
             //
