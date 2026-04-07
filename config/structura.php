@@ -99,4 +99,23 @@ return [
             'raw' => false,
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Suffixes
+    |--------------------------------------------------------------------------
+    | Defines the mandatory suffixes for different types of classes.
+    | If the suffix is not provided during class creation, it will be
+    | automatically appended.
+    |
+    */
+    'suffixes' => [
+        'action' => 'Action',
+        'cache' => 'Cache',
+        'dto' => 'DTO',
+        'enum' => 'Enum',
+        'helper' => 'Helper',
+        'service' => 'Service',
+        'trait' => null,
+    ],
 ];

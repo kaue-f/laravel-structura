@@ -3,6 +3,7 @@
 namespace KaueF\Structura\Console\Commands;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Str;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
 class ServiceCreationCommand extends GeneratorCommand
@@ -51,6 +52,19 @@ class ServiceCreationCommand extends GeneratorCommand
     protected function getDefaultNamespace($rootNamespace)
     {
         return config('structura.namespaces.service', $rootNamespace.'\Services');
+    }
+
+    /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        return Str::finish(
+            trim($this->argument('name')),
+            config('structura.suffixes.service', 'Service')
+        );
     }
 
     /**

@@ -11,6 +11,8 @@ class EnumCreationCommandTest extends TestCase
     {
         parent::setUp();
 
+        config(['structura.default_options.enum.backed' => null]);
+
         File::deleteDirectory(app_path('Enums'));
     }
 
@@ -102,7 +104,7 @@ class EnumCreationCommandTest extends TestCase
         $this->assertStringContainsString('case Third = 3', File::get($path));
     }
 
-    public function test_enum_creation_with_label_method(): void
+    public function test_enum_creation_with_label_attribute(): void
     {
         $this->artisan('structura:enum', [
             'name' => 'SampleEnum',
@@ -113,7 +115,22 @@ class EnumCreationCommandTest extends TestCase
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
         $this->assertStringContainsString('enum SampleEnum', File::get($path));
-        $this->assertStringContainsString('public function label(): string', File::get($path));
+        $this->assertStringContainsString('use KaueF\Structura\Attributes\Label;', File::get($path));
+    }
+
+    public function test_enum_creation_with_cases_and_label_attribute(): void
+    {
+        $this->artisan('structura:enum', [
+            'name' => 'SampleEnum',
+            '-l' => true,
+            '--cases' => 'First,Second,Third',
+        ])
+            ->assertExitCode(0);
+
+        $path = app_path('Enums/SampleEnum.php');
+        $this->assertTrue(File::exists($path));
+        $this->assertStringContainsString("#[Label('First')]", File::get($path));
+        $this->assertStringContainsString('case First;', File::get($path));
     }
 
     public function test_enum_creation_with_trait(): void

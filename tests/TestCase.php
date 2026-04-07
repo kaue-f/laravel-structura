@@ -17,5 +17,8 @@ abstract class TestCase extends Orchestra
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+
+        $config = require __DIR__.'/../config/structura.php';
+        $app['config']->set('structura', $config);
     }
 }

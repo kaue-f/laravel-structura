@@ -53,15 +53,25 @@ class TraitCreationCommand extends GeneratorCommand
     }
 
     /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        return Str::finish(
+            trim($this->argument('name')),
+            config('structura.suffixes.trait')
+        );
+    }
+
+    /**
      * Execute the console command.
      *
      * @return int|bool|null
      */
     public function handle()
     {
-        $name = Str::replace('Trait', '', $this->argument('name'));
-        $this->input->setArgument('name', $name);
-
         return parent::handle();
     }
 }

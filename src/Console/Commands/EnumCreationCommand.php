@@ -3,6 +3,7 @@
 namespace KaueF\Structura\Console\Commands;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Str;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
 class EnumCreationCommand extends GeneratorCommand
@@ -56,6 +57,19 @@ class EnumCreationCommand extends GeneratorCommand
     }
 
     /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        return Str::finish(
+            trim($this->argument('name')),
+            config('structura.suffixes.enum', 'Enum')
+        );
+    }
+
+    /**
      * Execute the console command.
      *
      * @return int|bool|null
@@ -86,10 +100,10 @@ class EnumCreationCommand extends GeneratorCommand
         return str_replace(
             ['{{imports}}', '{{trait}}', '{{cases}}', '{{methods}}'],
             [
-                ($this->optionOrConfig('enum', 'trait')) ? $this->getImportsStub() : '',
+                $this->getImportsStub(),
                 ($this->optionOrConfig('enum', 'trait')) ? $this->getTraitStub() : '',
                 $this->getEnumCases(),
-                ($this->optionOrConfig('enum', 'label')) ? $this->getLabelMethod() : '',
+                '',
             ],
             $this->replaceEnumName($stub, $name)
         );
@@ -113,11 +127,19 @@ class EnumCreationCommand extends GeneratorCommand
      */
     protected function getImportsStub(): string
     {
-        return <<<PHP
+        $imports = [];
+        if ($this->optionOrConfig('enum', 'trait')) {
+            $imports[] = 'use KaueF\Structura\Concerns\InteractsWithEnum;';
+        }
+        if ($this->optionOrConfig('enum', 'label')) {
+            $imports[] = 'use KaueF\Structura\Attributes\Label;';
+        }
 
-    use KaueF\Structura\Concerns\InteractsWithEnum;
+        if (empty($imports)) {
+            return '';
+        }
 
-    PHP;
+        return "\n".implode("\n", $imports)."\n";
     }
 
     /**
@@ -142,25 +164,34 @@ class EnumCreationCommand extends GeneratorCommand
         }
 
         $backed = $this->optionValueOrConfig('enum', 'backed');
+        $withLabel = $this->optionOrConfig('enum', 'label');
 
         return collect(explode(',', $this->option('cases')))
             ->map(fn ($case) => trim($case))
             ->filter()
-            ->map(function ($case, $key) use ($backed) {
+            ->map(function ($case, $key) use ($backed, $withLabel) {
                 $name = $this->normalizeEnumCase($case);
 
-                if (! $backed) {
-                    return "    case {$name};";
+                $caseDefinition = '';
+
+                if ($withLabel) {
+                    $label = ucwords(strtolower(str_replace(['_', '-'], ' ', $case)));
+                    $caseDefinition .= "    #[Label('{$label}')]\n";
                 }
 
-                $value = match ($backed) {
-                    'string' => "'".strtolower($case)."'",
-                    'int' => $key + 1,
-                };
+                if (! $backed) {
+                    $caseDefinition .= "    case {$name};";
+                } else {
+                    $value = match ($backed) {
+                        'string' => "'".strtolower($case)."'",
+                        'int' => $key + 1,
+                    };
+                    $caseDefinition .= "    case {$name} = {$value};";
+                }
 
-                return "    case {$name} = {$value};";
+                return $caseDefinition;
             })
-            ->implode("\n");
+            ->implode($withLabel ? "\n\n" : "\n");
     }
 
     /**

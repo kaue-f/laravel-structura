@@ -4,6 +4,7 @@ namespace KaueF\Structura\Console\Commands;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
 class HelperCreationCommand extends GeneratorCommand
@@ -54,6 +55,24 @@ class HelperCreationCommand extends GeneratorCommand
     protected function getDefaultNamespace($rootNamespace)
     {
         return config('structura.namespaces.helper', $rootNamespace.'\Helpers');
+    }
+
+    /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        $name = trim($this->argument('name'));
+        if (! $name) {
+            return $name;
+        }
+
+        return Str::finish(
+            $name,
+            config('structura.suffixes.helper', 'Helper')
+        );
     }
 
     /**

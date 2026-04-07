@@ -13,6 +13,21 @@ trait InteractsWithEnum
         return EnumSupport::toArray(enum: static::class);
     }
 
+    public function label(string $labelMethod = 'label'): string
+    {
+        return EnumSupport::label($this, $labelMethod);
+    }
+
+    public function color(string $colorMethod = 'color'): ?string
+    {
+        return EnumSupport::color($this, $colorMethod);
+    }
+
+    public function icon(string $iconMethod = 'icon'): ?string
+    {
+        return EnumSupport::icon($this, $iconMethod);
+    }
+
     public static function toData(string $labelMethod = 'label', ?callable $callback = null, string $sortBy = 'name', $order = 'asc'): array
     {
         return EnumSupport::toData(

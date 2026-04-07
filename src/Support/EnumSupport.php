@@ -6,6 +6,11 @@ use BackedEnum;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
+use KaueF\Structura\Attributes\Color;
+use KaueF\Structura\Attributes\DefaultCase;
+use KaueF\Structura\Attributes\Icon;
+use KaueF\Structura\Attributes\Ignore;
+use KaueF\Structura\Attributes\Label;
 use UnitEnum;
 
 class EnumSupport
@@ -27,6 +32,24 @@ class EnumSupport
     }
 
     /**
+     * Resolves the enum cases, ignoring those with the #[Ignore] attribute.
+     *
+     * @param  UnitEnum|string  $enum  Enum instance or enum class name.
+     * @return array List of valid enum cases.
+     */
+    protected static function cases(UnitEnum|string $enum): array
+    {
+        $enumClass = self::class($enum);
+
+        return array_values(array_filter($enumClass::cases(), function (UnitEnum $case) use ($enumClass) {
+            $reflection = new \ReflectionEnumUnitCase($enumClass, $case->name);
+            $attributes = $reflection->getAttributes(Ignore::class);
+
+            return empty($attributes);
+        }));
+    }
+
+    /**
      * Returns the scalar value of an enum case.
      *
      * For BackedEnum, returns the backed value.
@@ -40,6 +63,51 @@ class EnumSupport
         return $case instanceof BackedEnum
             ? $case->value
             : $case->name;
+    }
+
+    /**
+     * Extracts an attribute value from an enum case if it exists.
+     */
+    protected static function getAttributeValue(UnitEnum $case, string $attributeClass, string $property): mixed
+    {
+        $reflection = new \ReflectionEnumUnitCase($case::class, $case->name);
+        $attributes = $reflection->getAttributes($attributeClass);
+
+        if (empty($attributes)) {
+            return null;
+        }
+
+        $instance = $attributes[0]->newInstance();
+
+        return $instance->{$property} ?? null;
+    }
+
+    /**
+     * Resolves the label for a given enum case.
+     * Falls back to the label() method if #[Label] attr missing, then to name.
+     */
+    public static function label(UnitEnum $case, string $labelMethod = 'label'): string
+    {
+        return self::getAttributeValue($case, Label::class, 'label')
+            ?? (method_exists($case, $labelMethod) ? $case->{$labelMethod}() : $case->name);
+    }
+
+    /**
+     * Resolves the color for a given enum case.
+     */
+    public static function color(UnitEnum $case, string $colorMethod = 'color'): ?string
+    {
+        return self::getAttributeValue($case, Color::class, 'color')
+            ?? (method_exists($case, $colorMethod) ? $case->{$colorMethod}() : null);
+    }
+
+    /**
+     * Resolves the icon for a given enum case.
+     */
+    public static function icon(UnitEnum $case, string $iconMethod = 'icon'): ?string
+    {
+        return self::getAttributeValue($case, Icon::class, 'icon')
+            ?? (method_exists($case, $iconMethod) ? $case->{$iconMethod}() : null);
     }
 
     /**
@@ -62,7 +130,7 @@ class EnumSupport
     /**
      * Converts enum cases into a structured data array.
      *
-     * * Result format:
+     * Result format:
      * [
      *   ['id' => value, 'name' => label],
      * ]
@@ -78,13 +146,13 @@ class EnumSupport
     {
         $enum = self::class($enum);
 
-        return collect($enum::cases())
+        return collect(self::cases($enum))
             ->filter(fn (UnitEnum $case) => ! $callback || $callback($case))
             ->map(fn (UnitEnum $case) => [
                 'id' => self::value($case),
-                'name' => method_exists($case, $labelMethod)
-                    ? $case->{$labelMethod}()
-                    : $case->name,
+                'name' => self::label($case, $labelMethod),
+                'color' => self::color($case),
+                'icon' => self::icon($case),
             ])
             ->sortBy($sortBy, SORT_NATURAL, $order === 'desc')
             ->values()
@@ -103,7 +171,7 @@ class EnumSupport
         $enum = self::class($enum);
 
         return self::orderBy(
-            array: array_map(fn ($e) => $e->label(), $enum::cases()),
+            array: array_map(fn ($e) => self::label($e), self::cases($enum)),
             sort: $order
         );
     }
@@ -120,7 +188,7 @@ class EnumSupport
         $enum = self::class($enum);
 
         return self::orderBy(
-            array: array_column($enum::cases(), 'name'),
+            array: array_column(self::cases($enum), 'name'),
             sort: $order
         );
     }
@@ -137,7 +205,7 @@ class EnumSupport
         $enum = self::class($enum);
 
         return self::orderBy(
-            array: array_map(fn ($case) => self::value($case), $enum::cases()),
+            array: array_map(fn ($case) => self::value($case), self::cases($enum)),
             sort: $order
         );
     }
@@ -213,6 +281,32 @@ class EnumSupport
     }
 
     /**
+     * Attempts to resolve an enum case by its value or name.
+     * If it fails, falls back to the case marked with #[DefaultCase].
+     */
+    public static function tryFromDefault(UnitEnum|string $enum, mixed $value): ?UnitEnum
+    {
+        $enumClass = self::class($enum);
+
+        $resolved = is_subclass_of($enumClass, BackedEnum::class)
+            ? $enumClass::tryFrom($value)
+            : self::tryFromName($enumClass, (string) $value);
+
+        if ($resolved instanceof $enumClass) {
+            return $resolved;
+        }
+
+        foreach (self::cases($enumClass) as $case) {
+            $reflection = new \ReflectionEnumUnitCase($enumClass, $case->name);
+            if (! empty($reflection->getAttributes(DefaultCase::class))) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Checks whether two enum values are identical.
      *
      * @param  UnitEnum|string  $enumA  Enum value to compare.
@@ -233,7 +327,7 @@ class EnumSupport
      */
     public static function in(UnitEnum|string $enum, array $enum_array): bool
     {
-        foreach ($enum::cases() as $case) {
+        foreach (self::cases($enum) as $case) {
             if (in_array($case->value, $enum_array, true)) {
                 return true;
             }
@@ -257,7 +351,7 @@ class EnumSupport
         $except = array_filter((array) $except, fn ($e) => $e !== null);
 
         $cases = array_filter(
-            $enum::cases(),
+            self::cases($enum),
             fn ($case): bool => ! in_array(self::value($case), $except, true)
         );
 

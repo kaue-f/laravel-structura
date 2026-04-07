@@ -58,15 +58,29 @@ class DTOCreationCommand extends GeneratorCommand
     }
 
     /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        $name = trim($this->argument('name'));
+        $suffix = config('structura.suffixes.dto', 'DTO');
+
+        if ($suffix === 'DTO') {
+            $name = Str::replace('Dto', 'DTO', $name);
+        }
+
+        return Str::finish($name, $suffix);
+    }
+
+    /**
      * Execute the console command.
      *
      * @return int|bool|null
      */
     public function handle()
     {
-        // Name treatment manually to respect user's Str::replace
-        $this->input->setArgument('name', Str::replace('Dto', 'DTO', $this->argument('name')));
-
         if ($this->validateMethodOptions() === false) {
             return self::FAILURE;
         }

@@ -3,6 +3,7 @@
 namespace KaueF\Structura\Console\Commands;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Str;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
 class ActionCreationCommand extends GeneratorCommand
@@ -54,6 +55,19 @@ class ActionCreationCommand extends GeneratorCommand
     protected function getDefaultNamespace($rootNamespace)
     {
         return config('structura.namespaces.action', $rootNamespace.'\Actions');
+    }
+
+    /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        return Str::finish(
+            trim($this->argument('name')),
+            config('structura.suffixes.action', 'Action')
+        );
     }
 
     /**
@@ -130,10 +144,24 @@ class ActionCreationCommand extends GeneratorCommand
             return '//';
         }
 
+        if ($this->option('execute')) {
+            return $this->executeMethod();
+        }
+        if ($this->option('handle')) {
+            return $this->handleMethod();
+        }
+        if ($this->option('invokable')) {
+            return $this->invokableMethod();
+        }
+        if ($this->option('construct')) {
+            return $this->constructMethod();
+        }
+
         return match (true) {
             $this->optionOrConfig('action', 'execute') => $this->executeMethod(),
             $this->optionOrConfig('action', 'handle') => $this->handleMethod(),
             $this->optionOrConfig('action', 'invokable') => $this->invokableMethod(),
+            $this->optionOrConfig('action', 'construct') => $this->constructMethod(),
             default => '//',
         };
     }
