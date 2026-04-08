@@ -88,8 +88,10 @@ class EnumSupport
      */
     public static function label(UnitEnum $case, string $labelMethod = 'label'): string
     {
-        return self::getAttributeValue($case, Label::class, 'label')
+        $label = self::getAttributeValue($case, Label::class, 'label')
             ?? (method_exists($case, $labelMethod) ? $case->{$labelMethod}() : $case->name);
+
+        return __($label);
     }
 
     /**
