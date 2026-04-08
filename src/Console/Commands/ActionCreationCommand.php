@@ -20,7 +20,9 @@ class ActionCreationCommand extends GeneratorCommand
                             {--e|execute : Create an action with a execute method (default)}
                             {--l|handle : Create an action with a handle method}
                             {--i|invokable : Create an action with a __invoke method}
-                            {--r|raw : Create an action without methods}';
+                            {--r|raw : Create an action without methods}
+                            {--m|makeable : Attach Makeable trait to allow direct static execution}
+                            {--t|transaction : Wrap the method body in a DB transaction}';
 
     /**
      * The console command description.
@@ -96,10 +98,20 @@ class ActionCreationCommand extends GeneratorCommand
 
         $is_raw = $this->optionOrConfig('action', 'raw');
         $use_construct = $this->optionOrConfig('action', 'construct');
+        $use_makeable = $this->optionOrConfig('action', 'makeable');
+
+        $imports = '';
+        $trait = '';
+        if ($use_makeable) {
+            $imports = "\nuse KaueF\Structura\Concerns\Makeable;\n";
+            $trait = "    use Makeable;\n\n";
+        }
 
         return str_replace(
-            ['{{method}}', '{{constructor}}'],
+            ['{{imports}}', '{{trait}}', '{{method}}', '{{constructor}}'],
             [
+                $imports,
+                $trait,
                 $this->getMethodStub($is_raw),
                 (! $is_raw && $use_construct) ? $this->constructMethod() : '',
             ],
@@ -167,14 +179,28 @@ class ActionCreationCommand extends GeneratorCommand
     }
 
     /**
+     * Get the method body depending on transaction flag.
+     */
+    protected function getMethodBody(): string
+    {
+        $use_transaction = $this->optionOrConfig('action', 'transaction');
+
+        return $use_transaction
+            ? "return \\Illuminate\\Support\\Facades\\DB::transaction(function () {\n            //\n        });"
+            : '//';
+    }
+
+    /**
      * Get the execute method stub.
      */
     protected function executeMethod(): string
     {
-        return <<<'PHP'
+        $body = $this->getMethodBody();
+
+        return <<<PHP
     public function execute()
         {
-            //
+            {$body}
         }
     PHP;
     }
@@ -184,10 +210,12 @@ class ActionCreationCommand extends GeneratorCommand
      */
     protected function handleMethod(): string
     {
-        return <<<'PHP'
+        $body = $this->getMethodBody();
+
+        return <<<PHP
     public function handle()
         {
-            //
+            {$body}
         }
     PHP;
     }
@@ -197,10 +225,12 @@ class ActionCreationCommand extends GeneratorCommand
      */
     protected function invokableMethod(): string
     {
-        return <<<'PHP'
+        $body = $this->getMethodBody();
+
+        return <<<PHP
     public function __invoke()
         {
-            //
+            {$body}
         }
     PHP;
     }

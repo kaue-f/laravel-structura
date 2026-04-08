@@ -36,7 +36,7 @@ O principal objetivo do Structura é reduzir tarefas repetitivas, garantir consi
 ## 📦 Instalação
 
 ```bash
-composer require kaue-f/laravel-structura
+composer require kaue-f/laravel-structura --dev
 ```
 
 ### ⚙️ Publicação do arquivo de configuração
@@ -52,12 +52,12 @@ Este comando cria um novo arquivo structura.php no diretório config da aplicaç
 
 | Comando             | Descrição                                       |
 | ------------------- | ----------------------------------------------- |
-| `structura:action`  | Criar classes de **Action**                     |
+| `structura:action`  | Criar classes de **Action** com poderes Transactionais |
 | `structura:cache`   | Criar classes de **Cache**                      |
 | `structura:dto`     | Criar classes de **Data Transfer Object (DTO)** |
-| `structura:enum`    | Criar classes **Enum** com helpers              |
+| `structura:enum`    | Criar classes **Enum** com PHP 8.1 Attributes   |
 | `structura:helper`  | Criar classes **Helper** ou helpers globais     |
-| `structura:service` | Criar classes de **Service**                    |
+| `structura:service` | Criar classes de **Service** focadas em ServiceResults |
 | `structura:trait`   | Criar classes de **Trait**                      |
 | `structura:install` | Publicar o arquivo de configuração do Structura |
 
@@ -71,12 +71,14 @@ php artisan structura:action Logout --execute    # Padrão (-e)
 php artisan structura:action Logout --handle     # (-l)
 php artisan structura:action Logout --invokable  # (-i)
 php artisan structura:action Logout --construct  # (-c)
+php artisan structura:action Logout --makeable   # (-m) Adiciona suporte a chamada estática direta MinhaAction::run()
+php artisan structura:action Logout --transaction # (-t) Envolve o método em um DB::transaction() de banco
 php artisan structura:action Logout --raw        # (-r)
 ```
 
 > O método padrão é execute().
-> Use --handle, --invokable ou --construct para alterar.
-> O --raw cria uma Action sem métodos.
+> O modificador `--makeable` eleva o design facilitando invocações fora do container.
+> O `--transaction` blinda escopos que tocam o banco de dados magicamente.
 
 #### Cache
 
@@ -86,7 +88,7 @@ php artisan structura:cache Classification --extend   # (-e)
 php artisan structura:cache Classification --raw      # (-r)
 ```
 
-> Use --extend para estende Cache Support
+> Use --extend para estender da Cache Support.
 > O --raw cria uma classe independente.
 
 #### DTO
@@ -100,10 +102,8 @@ php artisan structura:dto User --trait        # (-t)
 php artisan structura:dto User --raw          # (-r)
 ```
 
-> Por padrão, DTO é final readonly com __construct.
-> Use flags para desativar.
-> O --trait adiciona InteractsWithDTO.
-> O --raw cria um DTO mínimo.
+> DTOs agora são robustos suportando estritamente PHP 8.2 readonly e final classes. 
+> Integrados com a arquitetura do pacote, permitindo transformar requests instantaneamente usando `MyDTO::fromRequest($request)` no seu controller.
 
 #### Enum
 
@@ -111,38 +111,34 @@ php artisan structura:dto User --raw          # (-r)
 php artisan structura:enum Status
 php artisan structura:enum Status --backed=string
 php artisan structura:enum Status --cases=ACTIVE,INACTIVE
-php artisan structura:enum Status --label        # (-l)
-php artisan structura:enum Status --trait        # (-t)
+php artisan structura:enum Status --label        # (-l) Usa modernos Atributos do PHP 8.1+ #[Label], #[Icon], #[Color]
+php artisan structura:enum Status --trait        # (-t) Adiciona recursos nativos de fallback como tryFromDefault()
 ```
 
-> Cria Enums nativos do PHP, opcionalmente com backed, labels ou trait anexada.
+> Diga adeus aos exaustivos `match()` blocos. A Structura constrói metadados declarativamente atráves de PHP Attributes!
 
 #### Helper
 
 ```bash
 php artisan structura:helper StringHelper
-php artisan structura:helper StringHelper --example   # Padrão (-e)
-php artisan structura:helper StringHelper --global    # (-g)
+php artisan structura:helper StringHelper --example   # (-e)
+php artisan structura:helper StringHelper --global    # (-g) Automação de composer autoload global
 php artisan structura:helper --stub                   # (-s)
-php artisan structura:helper StringHelper --raw       # (-r)
 ```
 
-> O --example adiciona um método de exemplo ao helper (comportamento padrão).
-> O --raw cria um helper independente, sem métodos.
-> O --stub gera o arquivo helpers.php a partir do stub do package e não exige nome.
-> Use --global para registrar helpers globais via Composer.
+> A tag --global agora injeta o caminho corretamente no `autoload.files` do composer.json e ainda roda um `composer dump-autoload` limpo para você sem sair do terminal.
 
 #### Service
 
 ```bash
 php artisan structura:service Comment
-php artisan structura:service Comment --construct   # Padrão (-c)
-php artisan structura:service Comment --raw         # (-r)
+php artisan structura:service Comment --construct   # (-c)
+php artisan structura:service Comment --method=validar # (-m) Customiza a nomenclatura de inicialização
+php artisan structura:service Comment --result      # (--res) Interliga sua Service a padronização de ServiceResult
 ```
 
-> Services encapsulam regras de negócio.
-> Padrão inclui __construct.
-> O --raw cria classe mínima.
+> Services encapsulam regras de negócio. 
+> Evite códigos complexos e confie no tipo de retorno nativo integrado da própria Structura acionando o `--result`.
 
 #### Trait
 

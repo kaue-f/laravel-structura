@@ -16,8 +16,9 @@ class ServiceCreationCommand extends GeneratorCommand
      * @var string
      */
     protected $signature = 'structura:service {name : Service name}
-                            {--c|construct : Create an service with a __construct method (default)}
-                            {--r|raw :  Create an service with without method}';
+                            {--c|construct : Create an service with a __construct method}
+                            {--m|method= : Create a specific method in the service}
+                            {--res|result : Format the method to return a ServiceResult}';
 
     /**
      * The console command description.
@@ -91,9 +92,16 @@ class ServiceCreationCommand extends GeneratorCommand
     {
         $stub = parent::buildClass($name);
 
+        $use_result = $this->optionOrConfig('service', 'result');
+
+        $imports = '';
+        if ($use_result) {
+            $imports = "\nuse KaueF\Structura\Support\ServiceResult;\n";
+        }
+
         return str_replace(
-            ['{{method}}'],
-            [$this->getMethodStub()],
+            ['{{imports}}', '{{method}}'],
+            [$imports, $this->getMethodStub()],
             $stub
         );
     }
@@ -103,15 +111,6 @@ class ServiceCreationCommand extends GeneratorCommand
      */
     protected function validateMethodOptions(): bool
     {
-        $methods = collect(['construct', 'raw'])
-            ->filter(fn ($option) => $this->option($option));
-
-        if ($methods->count() > 1) {
-            $this->error('⚠️ Choose only one option: --construct or --raw.');
-
-            return false;
-        }
-
         return true;
     }
 
@@ -120,11 +119,34 @@ class ServiceCreationCommand extends GeneratorCommand
      */
     protected function getMethodStub(): string
     {
-        return match (true) {
-            $this->optionOrConfig('service', 'raw') => '//',
-            $this->optionOrConfig('service', 'construct') => $this->constructMethod(),
-            default => '//',
-        };
+        $methods = [];
+
+        if ($this->optionOrConfig('service', 'construct')) {
+            $methods[] = $this->constructMethod();
+        }
+
+        if ($methodName = $this->option('method')) {
+            $methods[] = $this->customMethod($methodName);
+        }
+
+        return empty($methods) ? '//' : implode("\n\n", $methods);
+    }
+
+    /**
+     * Get the custom method stub.
+     */
+    protected function customMethod(string $name): string
+    {
+        $useResult = $this->optionOrConfig('service', 'result');
+        $returnType = $useResult ? ': ServiceResult' : '';
+        $body = $useResult ? 'return ServiceResult::success();' : '//';
+
+        return <<<PHP
+    public function {$name}(){$returnType}
+        {
+            {$body}
+        }
+    PHP;
     }
 
     /**

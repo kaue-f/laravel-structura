@@ -36,7 +36,7 @@ The main goal of Structura is to reduce repetitive tasks, ensure structural cons
 ## 📦 Installation
 
 ```bash
-composer require kaue-f/laravel-structura
+composer require kaue-f/laravel-structura --dev
 ```
 
 ### ⚙️ Publishing the configuration file
@@ -55,7 +55,7 @@ This command creates a new `structura.php` file in the Laravel application's `co
 | `structura:action`  | Create **Action** classes                     |
 | `structura:cache`   | Create **Cache** classes                      |
 | `structura:dto`     | Create **Data Transfer Object (DTO)** classes |
-| `structura:enum`    | Create **Enum** classes with helpers          |
+| `structura:enum`    | Create **Enum** classes based on PHP 8.1 Attributes |
 | `structura:helper`  | Create **Helper** classes or global helpers   |
 | `structura:service` | Create **Service** classes                    |
 | `structura:trait`   | Create **Trait** classes                      |
@@ -71,12 +71,15 @@ php artisan structura:action Logout --execute    # Default (-e)
 php artisan structura:action Logout --handle     # (-l)
 php artisan structura:action Logout --invokable  # (-i)
 php artisan structura:action Logout --construct  # (-c)
+php artisan structura:action Logout --makeable   # (-m) Attaches Makeable trait for MinhaAction::run() usage
+php artisan structura:action Logout --transaction # (-t) Wraps method content inside DB::transaction()
 php artisan structura:action Logout --raw        # (-r)
 ```
 
 > Default method is execute().
 > Use --handle, --invokable, or --construct to change it.
-> The --raw creates an Action without methods.
+> The --makeable makes action executable via static pattern.
+> The --transaction protects the block against database failures.
 
 #### Cache
 
@@ -100,10 +103,8 @@ php artisan structura:dto User --trait        # (-t)
 php artisan structura:dto User --raw          # (-r)
 ```
 
-> Default is final readonly with __construct.
-> Use flags to disable.
-> The --trait attaches InteractsWithDTO.
-> The --raw creates a minimal DTO.
+> Built strictly with PHP 8.2 readonly principles.
+> Leverage `MyDTO::fromRequest($request)` or `MyDTO::fromArray($data)` features when inheriting DTOSupport.
 
 #### Enum
 
@@ -111,38 +112,33 @@ php artisan structura:dto User --raw          # (-r)
 php artisan structura:enum Status
 php artisan structura:enum Status --backed=string
 php artisan structura:enum Status --cases=ACTIVE,INACTIVE
-php artisan structura:enum Status --label        # (-l)
-php artisan structura:enum Status --trait        # (-t)
+php artisan structura:enum Status --label        # (-l) Uses modern PHP 8.1 #[Label], #[Icon], #[Color] attributes
+php artisan structura:enum Status --trait        # (-t) Attaches InteractsWithEnum for tryFromDefault() fallback
 ```
 
-> Creates PHP native Enums, optionally backed, with labels or attached trait.
+> Creates PHP native Enums with elegant declarative metadata through Attributes, skipping old match() boilerplate.
 
 #### Helper
 
 ```bash
 php artisan structura:helper StringHelper
-php artisan structura:helper StringHelper --example   # Default (-e)
-php artisan structura:helper StringHelper --global    # (-g)
+php artisan structura:helper StringHelper --example   # (-e)
+php artisan structura:helper StringHelper --global    # (-g) Auto registers in composer.json files array
 php artisan structura:helper --stub                   # (-s)
-php artisan structura:helper StringHelper --raw       # (-r)
 ```
 
-> The --example adds an example method to the helper (default behavior).
-> The --raw creates a standalone helper without methods.
-> The --stub generates a helpers.php file based on the package stub and does not require a helper name.
-> Use --global to register global helper functions via Composer.
+> The --global flag flawlessly updates composer block and calls dump-autoload without leaving the terminal!
 
 #### Service
 
 ```bash
 php artisan structura:service Comment
-php artisan structura:service Comment --construct   # Default (-c)
-php artisan structura:service Comment --raw         # (-r)
+php artisan structura:service Comment --construct   # (-c)
+php artisan structura:service Comment --method=process # (-m) Specifies core method signature
+php artisan structura:service Comment --result      # (--res) Automates KaueF\Structura\Support\ServiceResult return types
 ```
 
-> Services encapsulate business logic.
-> Default includes __construct.
-> The --raw creates minimal class.
+> Services encapsulate business logic. Modernize error-handling and controller boundaries by returning ServiceResult.
 
 #### Trait
 

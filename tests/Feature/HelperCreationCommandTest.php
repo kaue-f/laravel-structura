@@ -15,20 +15,18 @@ class HelperCreationCommandTest extends TestCase
     }
 
     /**
-     * Test helper creation with example method by default.
-     * Generate a helper with example method.
+     * Test helper creation by default generates empty class.
      */
-    public function test_helper_creation_with_example_method_by_default(): void
+    public function test_helper_creation_by_default_is_empty(): void
     {
         $this->artisan('structura:helper', [
             'name' => 'SampleHelper',
-            '-e' => true,
         ])
             ->assertExitCode(0);
 
         $path = app_path('Helpers/SampleHelper.php');
         $this->assertTrue(File::exists($path));
-        $this->assertStringContainsString('public static function example(mixed $value)', File::get($path));
+        $this->assertStringNotContainsString('public static function example(mixed $value)', File::get($path));
     }
 
     /**

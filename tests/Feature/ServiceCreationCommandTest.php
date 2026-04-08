@@ -15,35 +15,35 @@ class ServiceCreationCommandTest extends TestCase
     }
 
     /**
-     * Test service creation with __construct method by default.
-     * Generate a service with __construct method.
+     * Test service creation by default generates empty class.
      */
-    public function test_service_creation_with_construct_method_by_default(): void
+    public function test_service_creation_by_default_is_empty(): void
     {
         $this->artisan('structura:service', [
             'name' => 'SampleService',
-            '-c' => true,
         ])
             ->assertExitCode(0);
 
         $path = app_path('Services/SampleService.php');
         $this->assertTrue(File::exists($path));
-        $this->assertStringContainsString('public function __construct()', File::get($path));
+        $this->assertStringNotContainsString('public function __construct()', File::get($path));
     }
-
     /**
-     * Test service creation with raw option.
-     * Generate a service without any method.
+     * Test service creation with custom method and result.
      */
-    public function test_service_creation_with_raw_option(): void
+    public function test_service_creation_with_custom_method_and_result(): void
     {
         $this->artisan('structura:service', [
             'name' => 'SampleService',
-            '-r' => true,
+            '--method' => 'process',
+            '--result' => true,
         ])
             ->assertExitCode(0);
 
         $path = app_path('Services/SampleService.php');
         $this->assertTrue(File::exists($path));
+        $this->assertStringContainsString('use KaueF\Structura\Support\ServiceResult;', File::get($path));
+        $this->assertStringContainsString('public function process(): ServiceResult', File::get($path));
+        $this->assertStringContainsString('return ServiceResult::success();', File::get($path));
     }
 }

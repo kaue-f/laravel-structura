@@ -2,11 +2,23 @@
 
 namespace KaueF\Structura\Support;
 
+use Illuminate\Http\Request;
 use JsonSerializable;
 use ReflectionClass;
 
 abstract readonly class DTOSupport implements JsonSerializable
 {
+    /**
+     * Creates the DTO from an Illuminate Request instance.
+     * Extracts validated data if it's a FormRequest, otherwise extracts all data.
+     */
+    public static function fromRequest(Request $request): static
+    {
+        $data = method_exists($request, 'validated') ? $request->validated() : $request->all();
+
+        return static::fromArray($data);
+    }
+
     /**
      * Creates the DTO from an associative array.
      *

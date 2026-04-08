@@ -97,4 +97,31 @@ class ActionCreationCommandTest extends TestCase
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
     }
+
+    public function test_action_creation_with_makeable_trait(): void
+    {
+        $this->artisan('structura:action', [
+            'name' => 'SampleAction',
+            '-m' => true,
+        ])
+            ->assertExitCode(0);
+
+        $path = app_path('Actions/SampleAction.php');
+        $this->assertTrue(File::exists($path));
+        $this->assertStringContainsString('use KaueF\Structura\Concerns\Makeable;', File::get($path));
+        $this->assertStringContainsString('use Makeable;', File::get($path));
+    }
+
+    public function test_action_creation_with_transaction(): void
+    {
+        $this->artisan('structura:action', [
+            'name' => 'SampleAction',
+            '-t' => true,
+        ])
+            ->assertExitCode(0);
+
+        $path = app_path('Actions/SampleAction.php');
+        $this->assertTrue(File::exists($path));
+        $this->assertStringContainsString('DB::transaction(function', File::get($path));
+    }
 }

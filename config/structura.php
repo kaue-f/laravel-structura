@@ -95,8 +95,7 @@ return [
             'stub' => false,
         ],
         'service' => [
-            'construct' => true,
-            'raw' => false,
+            'construct' => false,
         ],
     ],
 
