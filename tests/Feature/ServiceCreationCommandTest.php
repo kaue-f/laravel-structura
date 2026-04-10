@@ -28,6 +28,7 @@ class ServiceCreationCommandTest extends TestCase
         $this->assertTrue(File::exists($path));
         $this->assertStringNotContainsString('public function __construct()', File::get($path));
     }
+
     /**
      * Test service creation with custom method and result.
      */

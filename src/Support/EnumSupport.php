@@ -86,10 +86,10 @@ class EnumSupport
      * Resolves the label for a given enum case.
      * Falls back to the label() method if #[Label] attr missing, then to name.
      */
-    public static function label(UnitEnum $case, string $labelMethod = 'label'): string
+    public static function label(UnitEnum $case, ?string $labelMethod = 'label'): string
     {
         $label = self::getAttributeValue($case, Label::class, 'label')
-            ?? (method_exists($case, $labelMethod) ? $case->{$labelMethod}() : $case->name);
+            ?? ($labelMethod && method_exists($case, $labelMethod) ? $case->{$labelMethod}() : $case->name);
 
         return __($label);
     }
@@ -97,19 +97,19 @@ class EnumSupport
     /**
      * Resolves the color for a given enum case.
      */
-    public static function color(UnitEnum $case, string $colorMethod = 'color'): ?string
+    public static function color(UnitEnum $case, ?string $colorMethod = 'color'): ?string
     {
         return self::getAttributeValue($case, Color::class, 'color')
-            ?? (method_exists($case, $colorMethod) ? $case->{$colorMethod}() : null);
+            ?? ($colorMethod && method_exists($case, $colorMethod) ? $case->{$colorMethod}() : null);
     }
 
     /**
      * Resolves the icon for a given enum case.
      */
-    public static function icon(UnitEnum $case, string $iconMethod = 'icon'): ?string
+    public static function icon(UnitEnum $case, ?string $iconMethod = 'icon'): ?string
     {
         return self::getAttributeValue($case, Icon::class, 'icon')
-            ?? (method_exists($case, $iconMethod) ? $case->{$iconMethod}() : null);
+            ?? ($iconMethod && method_exists($case, $iconMethod) ? $case->{$iconMethod}() : null);
     }
 
     /**
@@ -144,18 +144,44 @@ class EnumSupport
      * @param  string  $order  Sort order ('asc' or 'desc').
      * @return array Normalized enum data.
      */
-    public static function toData(UnitEnum|string $enum, string $labelMethod = 'label', ?callable $callback = null, string $sortBy = 'name', $order = 'asc'): array
+    public static function toData(UnitEnum|string $enum, string $labelMethod = 'label', ?callable $callback = null, string $sortBy = 'name', $order = 'asc', ?array $map = null, bool $color = false, bool $icon = false): array
     {
         $enum = self::class($enum);
 
         return collect(self::cases($enum))
             ->filter(fn (UnitEnum $case) => ! $callback || $callback($case))
-            ->map(fn (UnitEnum $case) => [
-                'id' => self::value($case),
-                'name' => self::label($case, $labelMethod),
-                'color' => self::color($case),
-                'icon' => self::icon($case),
-            ])
+            ->map(function (UnitEnum $case) use ($map, $labelMethod, $color, $icon) {
+                if (! $map) {
+                    $data = [
+                        'id' => self::value($case),
+                        'name' => self::label($case, $labelMethod),
+                    ];
+
+                    if ($color) {
+                        $data['color'] = self::color($case);
+                    }
+                    if ($icon) {
+                        $data['icon'] = self::icon($case);
+                    }
+
+                    return array_filter($data, fn ($v) => ! is_null($v));
+                }
+
+                $data = [];
+                foreach ($map as $key => $field) {
+                    $key = is_int($key) ? $field : $key;
+
+                    $data[$key] = match ($field) {
+                        'id' => self::value($case),
+                        'name' => self::label($case, $labelMethod),
+                        'color' => self::color($case),
+                        'icon' => self::icon($case),
+                        default => is_callable($field) ? $field($case) : $field
+                    };
+                }
+
+                return array_filter($data, fn ($v) => ! is_null($v));
+            })
             ->sortBy($sortBy, SORT_NATURAL, $order === 'desc')
             ->values()
             ->toArray();

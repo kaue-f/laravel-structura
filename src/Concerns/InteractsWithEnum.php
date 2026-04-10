@@ -15,27 +15,30 @@ trait InteractsWithEnum
 
     public function label(string $labelMethod = 'label'): string
     {
-        return EnumSupport::label($this, $labelMethod);
+        return EnumSupport::label($this, null);
     }
 
     public function color(string $colorMethod = 'color'): ?string
     {
-        return EnumSupport::color($this, $colorMethod);
+        return EnumSupport::color($this, null);
     }
 
     public function icon(string $iconMethod = 'icon'): ?string
     {
-        return EnumSupport::icon($this, $iconMethod);
+        return EnumSupport::icon($this, null);
     }
 
-    public static function toData(string $labelMethod = 'label', ?callable $callback = null, string $sortBy = 'name', $order = 'asc'): array
+    public static function toData(string $labelMethod = 'label', ?callable $callback = null, string $sortBy = 'name', $order = 'asc', ?array $map = null, bool $color = false, bool $icon = false): array
     {
         return EnumSupport::toData(
             enum: static::class,
             labelMethod: $labelMethod,
             callback: $callback,
             sortBy: $sortBy,
-            order: $order
+            order: $order,
+            map: $map,
+            color: $color,
+            icon: $icon
         );
     }
 
