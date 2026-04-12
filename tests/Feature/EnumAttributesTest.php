@@ -28,7 +28,7 @@ class EnumAttributesTest extends TestCase
 {
     public function test_can_extract_attributes_to_data()
     {
-        $data = EnumSupport::toData(TestingAttributesEnum::class);
+        $data = EnumSupport::toData(TestingAttributesEnum::class, color: true, icon: true);
 
         // Active case
         $this->assertEquals('active', $data[0]['id']);
@@ -36,13 +36,13 @@ class EnumAttributesTest extends TestCase
         $this->assertEquals('success', $data[0]['color']);
         $this->assertEquals('heroicon-o-check', $data[0]['icon']);
 
-        // Pending case - missing icon should return null natively by the extracted array
+        // Pending case - missing icon should be omitted due to minimalist toData
         array_multisort(array_column($data, 'id'), SORT_ASC, $data); // To ensure order by ID or Name
 
         $pending = array_values(array_filter($data, fn ($d) => $d['id'] === 'pending'))[0];
         $this->assertEquals('Conta Pendente', $pending['name']);
         $this->assertEquals('warning', $pending['color']);
-        $this->assertNull($pending['icon']);
+        $this->assertArrayNotHasKey('icon', $pending);
     }
 
     public function test_try_from_default_returns_default_case_on_failure()

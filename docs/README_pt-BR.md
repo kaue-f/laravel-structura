@@ -48,16 +48,24 @@ php artisan structura:install --force   # Força a sobrescrita
 
 Este comando cria um novo arquivo structura.php no diretório config da aplicação Laravel.
 
+### 🚀 Integração com IA (Laravel Boost)
+
+Se você utiliza o [Laravel Boost](https://github.com/kaue-f/laravel-boost) ou ferramentas similares de assistência por IA, você pode adicionar a Skill do Structura automaticamente para que a IA entenda e siga os padrões arquiteturais do pacote corretamente:
+
+```bash
+php artisan boost:add-skill kaue-f/laravel-structura
+```
+
 ## 📌 Comandos disponíveis
 
 | Comando             | Descrição                                       |
 | ------------------- | ----------------------------------------------- |
-| `structura:action`  | Criar classes de **Action** com poderes Transactionais |
+| `structura:action`  | Criar classes de **Action** com suporte Transactional |
 | `structura:cache`   | Criar classes de **Cache**                      |
 | `structura:dto`     | Criar classes de **Data Transfer Object (DTO)** |
-| `structura:enum`    | Criar classes **Enum** com PHP 8.1 Attributes   |
+| `structura:enum`    | Criar classes **Enum** com mapeamento de Attributes |
 | `structura:helper`  | Criar classes **Helper** ou helpers globais     |
-| `structura:service` | Criar classes de **Service** focadas em ServiceResults |
+| `structura:service` | Criar classes de **Service** com automação de Result |
 | `structura:trait`   | Criar classes de **Trait**                      |
 | `structura:install` | Publicar o arquivo de configuração do Structura |
 
@@ -71,39 +79,12 @@ php artisan structura:action Logout --execute    # Padrão (-e)
 php artisan structura:action Logout --handle     # (-l)
 php artisan structura:action Logout --invokable  # (-i)
 php artisan structura:action Logout --construct  # (-c)
-php artisan structura:action Logout --makeable   # (-m) Adiciona suporte a chamada estática direta MinhaAction::run()
-php artisan structura:action Logout --transaction # (-t) Envolve o método em um DB::transaction() de banco
-php artisan structura:action Logout --raw        # (-r)
+php artisan structura:action Logout --makeable   # (-m) Adiciona suporte a chamada estática direta
+php artisan structura:action Logout --transaction # (-t) Protege o escopo com DB::transaction()
+php artisan structura:action Logout --raw        # (-r) Cria classe vazia
 ```
 
-> O método padrão é execute().
-> O modificador `--makeable` eleva o design facilitando invocações fora do container.
-> O `--transaction` blinda escopos que tocam o banco de dados magicamente.
-
-#### Cache
-
-```bash
-php artisan structura:cache Classification
-php artisan structura:cache Classification --extend   # (-e)
-php artisan structura:cache Classification --raw      # (-r)
-```
-
-> Use --extend para estender da Cache Support.
-> O --raw cria uma classe independente.
-
-#### DTO
-
-```bash
-php artisan structura:dto User
-php artisan structura:dto User --no-final
-php artisan structura:dto User --no-readonly
-php artisan structura:dto User --no-construct
-php artisan structura:dto User --trait        # (-t)
-php artisan structura:dto User --raw          # (-r)
-```
-
-> DTOs agora são robustos suportando estritamente PHP 8.2 readonly e final classes. 
-> Integrados com a arquitetura do pacote, permitindo transformar requests instantaneamente usando `MyDTO::fromRequest($request)` no seu controller.
+> **Dica Pro:** Por padrão, o `makeable` vem como `true` no arquivo `config/structura.php`, garantindo que todas as suas actions já nasçam prontas para serem chamadas com `LogoutAction::run()`!
 
 #### Enum
 
@@ -111,11 +92,17 @@ php artisan structura:dto User --raw          # (-r)
 php artisan structura:enum Status
 php artisan structura:enum Status --backed=string
 php artisan structura:enum Status --cases=ACTIVE,INACTIVE
-php artisan structura:enum Status --label        # (-l) Usa modernos Atributos do PHP 8.1+ #[Label], #[Icon], #[Color]
-php artisan structura:enum Status --trait        # (-t) Adiciona recursos nativos de fallback como tryFromDefault()
+php artisan structura:enum Status --label        # (-l) Usa modernos Atributos #[Label], #[Icon], #[Color]
+php artisan structura:enum Status --trait        # (-t) Adiciona recursos nativos de fallback
 ```
 
-> Diga adeus aos exaustivos `match()` blocos. A Structura constrói metadados declarativamente atráves de PHP Attributes!
+> **Uso Moderno de Enums:** Utilize o método `toData()` para uma integração poderosa com o frontend:
+> ```php
+> Status::toData(); // Minimalista: retorna ['id' => '...', 'name' => '...']
+> Status::toData(color: true, icon: true); // Inclui atributos de cor e ícone
+> Status::toData(map: ['value' => 'id', 'label' => 'name']); // Renomeia chaves customizadas
+> Status::toData(map: ['extra' => fn($case) => $case->getExtra()]); // Resolução via Closure
+> ```
 
 #### Helper
 
@@ -126,16 +113,17 @@ php artisan structura:helper StringHelper --global    # (-g) Automação de comp
 php artisan structura:helper --stub                   # (-s)
 ```
 
-> A tag --global agora injeta o caminho corretamente no `autoload.files` do composer.json e ainda roda um `composer dump-autoload` limpo para você sem sair do terminal.
-
 #### Service
 
 ```bash
 php artisan structura:service Comment
 php artisan structura:service Comment --construct   # (-c)
-php artisan structura:service Comment --method=validar # (-m) Customiza a nomenclatura de inicialização
-php artisan structura:service Comment --result      # (--res) Interliga sua Service a padronização de ServiceResult
+php artisan structura:service Comment --method=process # (-m) Define o método principal
+php artisan structura:service Comment --result      # (--res) Automatiza retornos do tipo ServiceResult
+php artisan structura:service Comment --makeable    # (--mk) Permite o uso do padrão ::run()
 ```
+
+> **Geração Inteligente de Services:** Se você passar as flags `--method` e `--makeable` juntas, o Structura injeta automaticamente a propriedade `$makeableMethod` para que o `CommentService::run()` funcione instantaneamente!
 
 > Services encapsulam regras de negócio. 
 > Evite códigos complexos e confie no tipo de retorno nativo integrado da própria Structura acionando o `--result`.

@@ -48,16 +48,24 @@ php artisan structura:install --force   # Force overwrite
 
 This command creates a new `structura.php` file in the Laravel application's `config` directory.
 
+### 🚀 AI Integration (Laravel Boost)
+
+If you use [Laravel Boost](https://github.com/kaue-f/laravel-boost) or similar AI assistance tools, you can add the Structura Skill automatically to help the AI understand and follow the package's architectural patterns correctly:
+
+```bash
+php artisan boost:add-skill kaue-f/laravel-structura
+```
+
 ## 📌 Available commands
 
 | Command             | Description                                   |
 | ------------------- | --------------------------------------------- |
-| `structura:action`  | Create **Action** classes                     |
+| `structura:action`  | Create **Action** classes with Transactional support |
 | `structura:cache`   | Create **Cache** classes                      |
 | `structura:dto`     | Create **Data Transfer Object (DTO)** classes |
-| `structura:enum`    | Create **Enum** classes based on PHP 8.1 Attributes |
+| `structura:enum`    | Create **Enum** classes with Attribute mapping |
 | `structura:helper`  | Create **Helper** classes or global helpers   |
-| `structura:service` | Create **Service** classes                    |
+| `structura:service` | Create **Service** classes with Result automation |
 | `structura:trait`   | Create **Trait** classes                      |
 | `structura:install` | Publish Structura configuration file          |
 
@@ -71,40 +79,12 @@ php artisan structura:action Logout --execute    # Default (-e)
 php artisan structura:action Logout --handle     # (-l)
 php artisan structura:action Logout --invokable  # (-i)
 php artisan structura:action Logout --construct  # (-c)
-php artisan structura:action Logout --makeable   # (-m) Attaches Makeable trait for MinhaAction::run() usage
-php artisan structura:action Logout --transaction # (-t) Wraps method content inside DB::transaction()
-php artisan structura:action Logout --raw        # (-r)
+php artisan structura:action Logout --makeable   # (-m) Attaches Makeable trait for Static execution
+php artisan structura:action Logout --transaction # (-t) Protects scope with DB::transaction()
+php artisan structura:action Logout --raw        # (-r) Creates empty class
 ```
 
-> Default method is execute().
-> Use --handle, --invokable, or --construct to change it.
-> The --makeable makes action executable via static pattern.
-> The --transaction protects the block against database failures.
-
-#### Cache
-
-```bash
-php artisan structura:cache Classification
-php artisan structura:cache Classification --extend   # (-e)
-php artisan structura:cache Classification --raw      # (-r)
-```
-
-> Use --extend to extend Cache Support
-> The --raw creates a standalone Cache class.
-
-#### DTO
-
-```bash
-php artisan structura:dto User
-php artisan structura:dto User --no-final
-php artisan structura:dto User --no-readonly
-php artisan structura:dto User --no-construct
-php artisan structura:dto User --trait        # (-t)
-php artisan structura:dto User --raw          # (-r)
-```
-
-> Built strictly with PHP 8.2 readonly principles.
-> Leverage `MyDTO::fromRequest($request)` or `MyDTO::fromArray($data)` features when inheriting DTOSupport.
+> **Pro Tip:** By default, `makeable` is set to `true` in `config/structura.php`, ensuring all your actions are ready for `LogoutAction::run()` usage!
 
 #### Enum
 
@@ -112,31 +92,39 @@ php artisan structura:dto User --raw          # (-r)
 php artisan structura:enum Status
 php artisan structura:enum Status --backed=string
 php artisan structura:enum Status --cases=ACTIVE,INACTIVE
-php artisan structura:enum Status --label        # (-l) Uses modern PHP 8.1 #[Label], #[Icon], #[Color] attributes
-php artisan structura:enum Status --trait        # (-t) Attaches InteractsWithEnum for tryFromDefault() fallback
+php artisan structura:enum Status --label        # (-l) Uses #[Label], #[Icon], #[Color] attributes
+php artisan structura:enum Status --trait        # (-t) Attaches InteractsWithEnum fallback support
 ```
 
-> Creates PHP native Enums with elegant declarative metadata through Attributes, skipping old match() boilerplate.
+> **Modern Enum Usage:** Use `toData()` for powerful frontend integration:
+>
+> ```php
+> Status::toData(); // Minimalist: returns ['id' => '...', 'name' => '...']
+> Status::toData(color: true, icon: true); // Includes attributes
+> Status::toData(map: ['value' => 'id', 'label' => 'name']); // Custom key renaming
+> Status::toData(map: ['extra' => fn($case) => $case->getExtra()]); // Closure resolution
+> ```
 
 #### Helper
 
 ```bash
 php artisan structura:helper StringHelper
 php artisan structura:helper StringHelper --example   # (-e)
-php artisan structura:helper StringHelper --global    # (-g) Auto registers in composer.json files array
+php artisan structura:helper StringHelper --global    # (-g) Auto-registers in composer.json
 php artisan structura:helper --stub                   # (-s)
 ```
-
-> The --global flag flawlessly updates composer block and calls dump-autoload without leaving the terminal!
 
 #### Service
 
 ```bash
 php artisan structura:service Comment
 php artisan structura:service Comment --construct   # (-c)
-php artisan structura:service Comment --method=process # (-m) Specifies core method signature
-php artisan structura:service Comment --result      # (--res) Automates KaueF\Structura\Support\ServiceResult return types
+php artisan structura:service Comment --method=process # (-m) Specifies core method
+php artisan structura:service Comment --result      # (--res) Automates ServiceResult return types
+php artisan structura:service Comment --makeable    # (--mk) Enables ::run() usage
 ```
+
+> **Smart Service Generation:** If you provide both `--method` and `--makeable`, Structura automatically injects the `$makeableMethod` property so `CommentService::run()` works instantly!
 
 > Services encapsulate business logic. Modernize error-handling and controller boundaries by returning ServiceResult.
 

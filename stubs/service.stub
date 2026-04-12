@@ -4,5 +4,6 @@ namespace {{ namespace }};
 {{imports}}
 class {{ class }}
 {
+{{trait}}
     {{method}}
 }

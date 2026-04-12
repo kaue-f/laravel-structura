@@ -47,4 +47,23 @@ class ServiceCreationCommandTest extends TestCase
         $this->assertStringContainsString('public function process(): ServiceResult', File::get($path));
         $this->assertStringContainsString('return ServiceResult::success();', File::get($path));
     }
+
+    /**
+     * Test service creation with makeable trait and custom method.
+     */
+    public function test_service_creation_with_makeable_trait_and_custom_method(): void
+    {
+        $this->artisan('structura:service', [
+            'name' => 'SampleService',
+            '--method' => 'process',
+            '--makeable' => true,
+        ])
+            ->assertExitCode(0);
+
+        $path = app_path('Services/SampleService.php');
+        $this->assertTrue(File::exists($path));
+        $this->assertStringContainsString('use Makeable;', File::get($path));
+        $this->assertStringContainsString("protected string \$makeableMethod = 'process';", File::get($path));
+        $this->assertStringContainsString('public function process()', File::get($path));
+    }
 }

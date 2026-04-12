@@ -18,7 +18,8 @@ class ServiceCreationCommand extends GeneratorCommand
     protected $signature = 'structura:service {name : Service name}
                             {--c|construct : Create an service with a __construct method}
                             {--m|method= : Create a specific method in the service}
-                            {--res|result : Format the method to return a ServiceResult}';
+                            {--res|result : Format the method to return a ServiceResult}
+                            {--mk|makeable : Attach Makeable trait to allow direct static execution}';
 
     /**
      * The console command description.
@@ -93,15 +94,31 @@ class ServiceCreationCommand extends GeneratorCommand
         $stub = parent::buildClass($name);
 
         $use_result = $this->optionOrConfig('service', 'result');
+        $use_makeable = $this->optionOrConfig('service', 'makeable');
 
         $imports = '';
+        $trait = '';
+
         if ($use_result) {
-            $imports = "\nuse KaueF\Structura\Support\ServiceResult;\n";
+            $imports .= "\nuse KaueF\Structura\Support\ServiceResult;";
+        }
+
+        if ($use_makeable) {
+            $imports .= "\nuse KaueF\Structura\Concerns\Makeable;";
+            $trait .= "    use Makeable;\n\n";
+
+            if ($methodName = $this->option('method')) {
+                $trait .= "    protected string \$makeableMethod = '{$methodName}';\n\n";
+            }
+        }
+
+        if (! empty($imports)) {
+            $imports .= "\n";
         }
 
         return str_replace(
-            ['{{imports}}', '{{method}}'],
-            [$imports, $this->getMethodStub()],
+            ['{{imports}}', '{{trait}}', '{{method}}'],
+            [$imports, $trait, $this->getMethodStub()],
             $stub
         );
     }

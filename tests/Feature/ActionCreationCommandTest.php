@@ -124,4 +124,18 @@ class ActionCreationCommandTest extends TestCase
         $this->assertTrue(File::exists($path));
         $this->assertStringContainsString('DB::transaction(function', File::get($path));
     }
+
+    public function test_action_creation_has_makeable_by_default_from_config(): void
+    {
+        // By default 'makeable' is true in config/structura.php for actions
+        $this->artisan('structura:action', [
+            'name' => 'ConfigAction',
+        ])
+            ->assertExitCode(0);
+
+        $path = app_path('Actions/ConfigAction.php');
+        $this->assertTrue(File::exists($path));
+        $this->assertStringContainsString('use KaueF\Structura\Concerns\Makeable;', File::get($path));
+        $this->assertStringContainsString('use Makeable;', File::get($path));
+    }
 }

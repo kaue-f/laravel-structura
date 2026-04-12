@@ -71,6 +71,8 @@ return [
             'execute' => true,
             'handle' => false,
             'invokable' => false,
+            'makeable' => true,
+            'transaction' => false,
             'raw' => false,
         ],
         'cache' => [
@@ -96,6 +98,8 @@ return [
         ],
         'service' => [
             'construct' => false,
+            'makeable' => false,
+            'result' => false,
         ],
     ],
 
