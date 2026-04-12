@@ -86,6 +86,17 @@ php artisan structura:action Logout --raw        # (-r) Cria classe vazia
 
 > **Dica Pro:** Por padrão, o `makeable` vem como `true` no arquivo `config/structura.php`, garantindo que todas as suas actions já nasçam prontas para serem chamadas com `LogoutAction::run()`!
 
+#### Cache
+
+```bash
+php artisan structura:cache Classification
+php artisan structura:cache Classification --extend   # (-e)
+php artisan structura:cache Classification --raw      # (-r)
+```
+
+> Use --extend para estender da Cache Support.
+> O --raw cria uma classe independente.
+
 #### Enum
 
 ```bash
@@ -103,6 +114,20 @@ php artisan structura:enum Status --trait        # (-t) Adiciona recursos nativo
 > Status::toData(map: ['value' => 'id', 'label' => 'name']); // Renomeia chaves customizadas
 > Status::toData(map: ['extra' => fn($case) => $case->getExtra()]); // Resolução via Closure
 > ```
+
+#### DTO
+
+```bash
+php artisan structura:dto User
+php artisan structura:dto User --no-final
+php artisan structura:dto User --no-readonly
+php artisan structura:dto User --no-construct
+php artisan structura:dto User --trait        # (-t)
+php artisan structura:dto User --raw          # (-r)
+```
+
+> DTOs agora são robustos suportando estritamente PHP 8.2 readonly e final classes. 
+> Integrados com a arquitetura do pacote, permitindo transformar requests instantaneamente usando `MyDTO::fromRequest($request)` no seu controller.
 
 #### Helper
 
