@@ -51,11 +51,13 @@ Este comando cria um novo arquivo `structura.php` no diretório `config` da apli
 
 ### 🚀 Integração com IA (Laravel Boost)
 
-Se você utiliza o [Laravel Boost](https://github.com/kaue-f/laravel-boost) ou ferramentas similares de assistência por IA, você pode adicionar a Skill do Structura automaticamente para que a IA entenda e siga os padrões arquiteturais do pacote corretamente:
+Este pacote inclui uma skill nativa para o [Laravel Boost](https://laravel.com/docs/boost). Se seu projeto usa o Boost, a skill do Structura é descoberta e instalada automaticamente ao rodar:
 
 ```bash
-php artisan boost:add-skill kaue-f/laravel-structura
+php artisan boost:install
 ```
+
+Após instalada, o seu agente de IA entenderá a arquitetura do Structura — Actions, Services, DTOs, Enums, Caches e Helpers — e seguirá todas as convenções de nomenclatura e padrões automaticamente.
 
 ## 📌 Comandos disponíveis
 

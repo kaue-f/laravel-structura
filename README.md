@@ -51,11 +51,13 @@ This command creates a new `structura.php` file in the Laravel application's `co
 
 ### 🚀 AI Integration (Laravel Boost)
 
-If you use [Laravel Boost](https://github.com/kaue-f/laravel-boost) or similar AI assistance tools, you can add the Structura Skill automatically to help the AI understand and follow the package's architectural patterns correctly:
+This package ships with a built-in [Laravel Boost](https://laravel.com/docs/boost) skill. If your project uses Boost, the Structura skill is automatically discovered and installed when you run:
 
 ```bash
-php artisan boost:add-skill kaue-f/laravel-structura
+php artisan boost:install
 ```
+
+Once installed, your AI agent will understand the Structura architecture — Actions, Services, DTOs, Enums, Caches, and Helpers — and follow all naming conventions and patterns automatically.
 
 ## 📌 Available commands
 

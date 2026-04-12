@@ -20,6 +20,10 @@ class ConsoleServiceProvider extends ServiceProvider
             __DIR__.'/../../config/structura.php' => config_path('structura.php'),
         ], 'structura.config');
 
+        $this->publishes([
+            __DIR__.'/../../resources/boost' => base_path('resources/boost'),
+        ], 'boost-skills');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ActionCreationCommand::class,

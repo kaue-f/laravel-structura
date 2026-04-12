@@ -1,6 +1,15 @@
+---
+name: structura
+description: "Apply this skill whenever working with the laravel-structura package. Activate when creating or refactoring Actions, Services, DTOs, Enums, Caches, Helpers, or Traits via the `structura:*` Artisan commands. Also activate when the user mentions Actions, ServiceResult, Makeable, InteractsWithDTO, InteractsWithEnum, toData(), or any class under App\\Actions, App\\Services, App\\DTOs, App\\Enums, App\\Caches, App\\Helpers, or App\\Concerns."
+license: MIT
+metadata:
+  author: kaue-f
+---
+
 # Laravel Structura Skill
 
 ## Introduction
+
 You are working in a Laravel project that uses the `kaue-f/laravel-structura` package. This package enforces a clean, consistent, and highly decoupled architecture using patterns like Actions, Services, DTOs, Enums, Caches, Helpers, and Traits.
 
 Whenever you are asked to generate or refactor business logic, strictly follow these guidelines to maintain architectural consistency.
@@ -9,7 +18,7 @@ Whenever you are asked to generate or refactor business logic, strictly follow t
 
 -   **Actions (`App\Actions`)**: Single-responsibility classes that orchestrate specific use cases.
     -   *Rule:* **Never** call an Action from inside another Action.
-    -   *Rule:* Prefer the `Makeable` pattern: Call `MyAction::run(...args)` instead of instantiating manually.
+    -   *Rule:* Prefer the `Makeable` pattern: call `MyAction::run(...args)` instead of instantiating manually.
     -   *Rule:* Actions can call Services, but not other Actions.
     -   *Suffix requirement:* Must end with `Action` (auto-enforced by the package).
 
@@ -33,7 +42,7 @@ Whenever you are asked to generate or refactor business logic, strictly follow t
     -   *Suffix requirement:* Must end with `Enum` (auto-enforced).
 
 -   **Cache (`App\Caches`)**: Cache layer classes.
-    -   *Rule:* Use `--extend` to inherit from `CacheSupport` and get `remember()`, `forget()` and `$prefix` out of the box.
+    -   *Rule:* Use `--extend` to inherit from `CacheSupport` and get `remember()`, `forget()`, and `$prefix` out of the box.
     -   *Suffix requirement:* Must end with `Cache` (auto-enforced).
 
 -   **Helpers (`App\Helpers`)**: Utility functions.
@@ -47,15 +56,15 @@ Whenever you are asked to generate or refactor business logic, strictly follow t
 
 The package enforces strict naming. Always use and suggest the correct suffixes:
 
-| Type    | Suffix    | Example              |
-|---------|-----------|----------------------|
-| Action  | `*Action` | `ProcessPaymentAction` |
-| Service | `*Service`| `SocialAuthService`  |
-| DTO     | `*DTO`    | `UserRegistrationDTO`|
-| Enum    | `*Enum`   | `UserRoleEnum`       |
-| Cache   | `*Cache`  | `ClassificationCache`|
-| Helper  | `*Helper` | `StringHelper`       |
-| Trait   | *(none)*  | `HasAvatar`          |
+| Type    | Suffix     | Example                  |
+|---------|------------|--------------------------|
+| Action  | `*Action`  | `ProcessPaymentAction`   |
+| Service | `*Service` | `SocialAuthService`      |
+| DTO     | `*DTO`     | `UserRegistrationDTO`    |
+| Enum    | `*Enum`    | `UserRoleEnum`           |
+| Cache   | `*Cache`   | `ClassificationCache`    |
+| Helper  | `*Helper`  | `StringHelper`           |
+| Trait   | *(none)*   | `HasAvatar`              |
 
 ## 3. Configuration Awareness
 
@@ -66,6 +75,7 @@ Always check `config/structura.php` (if present) before generating files. It is 
 - CLI flags always **override** config defaults
 
 Key defaults in a standard install:
+
 ```php
 'action'  => ['execute' => true, 'makeable' => true, 'transaction' => false]
 'service' => ['makeable' => false, 'result' => false]
@@ -78,17 +88,17 @@ When generating new files, use the correct Artisan commands:
 
 ```bash
 # Actions
-php artisan structura:action Name              # Default: execute() + Makeable
-php artisan structura:action Name --handle     # (-l) handle() method
-php artisan structura:action Name --invokable  # (-i) __invoke() method
+php artisan structura:action Name               # Default: execute() + Makeable
+php artisan structura:action Name --handle      # (-l) handle() method
+php artisan structura:action Name --invokable   # (-i) __invoke() method
 php artisan structura:action Name --transaction # (-t) DB::transaction() wrapper
-php artisan structura:action Name --raw        # (-r) empty class
+php artisan structura:action Name --raw         # (-r) empty class
 
 # Services
 php artisan structura:service Name --method=process --result --makeable
 
 # DTOs
-php artisan structura:dto Name --trait   # Enables fromRequest() / fromArray()
+php artisan structura:dto Name --trait          # Enables fromRequest() / fromArray()
 
 # Enums
 php artisan structura:enum Name --backed=string --cases=A,B,C --label --trait
@@ -98,10 +108,14 @@ php artisan structura:cache Name --extend
 
 # Helpers
 php artisan structura:helper Name --global
+
+# Traits
+php artisan structura:trait Name
 ```
 
 *(Suffixes are automatically appended based on `config/structura.php`)*
 
 ---
+
 **Summary for AI agents:**
 Separate layers strictly. Orchestrate with `*Action::run()`, process with `*Service` returning `ServiceResult`, carry data with `*DTO`, define constants with `*Enum` using `toData()`, and cache with `*Cache`. Use the generator commands to ensure consistency. Never hardcode namespaces — always reference `config/structura.php`.
