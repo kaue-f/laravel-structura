@@ -25,7 +25,7 @@ return [
     'namespaces' => [
         'action' => 'App\\Actions',
         'cache' => 'App\\Caches',
-        'dto' => 'App\\DTOs',
+        'data' => 'App\\Data',
         'enum' => 'App\\Enums',
         'helper' => 'App\\Helpers',
         'service' => 'App\\Services',
@@ -47,7 +47,7 @@ return [
     'paths' => [
         'action' => app_path('Actions'),
         'cache' => app_path('Caches'),
-        'dto' => app_path('DTOs'),
+        'data' => app_path('Data'),
         'enum' => app_path('Enums'),
         'helper' => app_path('Helpers'),
         'service' => app_path('Services'),
@@ -79,7 +79,7 @@ return [
             'extend' => false,
             'raw' => false,
         ],
-        'dto' => [
+        'data' => [
             'no-final' => false,
             'no-readonly' => false,
             'no-construct' => false,
@@ -115,7 +115,7 @@ return [
     'suffixes' => [
         'action' => 'Action',
         'cache' => 'Cache',
-        'dto' => 'DTO',
+        'data' => 'Data',
         'enum' => 'Enum',
         'helper' => 'Helper',
         'service' => 'Service',

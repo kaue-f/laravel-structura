@@ -6,10 +6,10 @@ use Illuminate\Http\Request;
 use JsonSerializable;
 use ReflectionClass;
 
-abstract readonly class DTOSupport implements JsonSerializable
+abstract readonly class DataSupport implements JsonSerializable
 {
     /**
-     * Creates the DTO from an Illuminate Request instance.
+     * Creates the Data object from an Illuminate Request instance.
      * Extracts validated data if it's a FormRequest, otherwise extracts all data.
      */
     public static function fromRequest(Request $request): static
@@ -20,12 +20,12 @@ abstract readonly class DTOSupport implements JsonSerializable
     }
 
     /**
-     * Creates the DTO from an associative array.
+     * Creates the Data object from an associative array.
      *
      * Array values are automatically mapped to the constructor parameters
      * using each parameter name as the corresponding key.
      *
-     * @param  array<string, mixed>  $data  Data used to create the DTO.
+     * @param  array<string, mixed>  $data  Data used to create the object.
      */
     public static function fromArray(array $data): static
     {
@@ -40,7 +40,7 @@ abstract readonly class DTOSupport implements JsonSerializable
     }
 
     /**
-     * Converts the DTO to an associative array.
+     * Converts the Data object to an associative array.
      */
     public function toArray(): array
     {

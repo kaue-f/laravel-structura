@@ -29,13 +29,13 @@ class SuffixNamingTest extends TestCase
         $this->assertTrue(File::exists(app_path('Caches/UserCache.php')));
     }
 
-    public function test_dto_suffix_is_appended_and_forced_to_uppercase(): void
+    public function test_data_suffix_is_appended(): void
     {
-        $this->artisan('structura:dto', ['name' => 'User'])->assertExitCode(0);
-        $this->assertTrue(File::exists(app_path('DTOs/UserDTO.php')));
+        $this->artisan('structura:data', ['name' => 'User'])->assertExitCode(0);
+        $this->assertTrue(File::exists(app_path('Data/UserData.php')));
 
-        $this->artisan('structura:dto', ['name' => 'ProductDto'])->assertExitCode(0);
-        $this->assertTrue(File::exists(app_path('DTOs/ProductDTO.php')));
+        $this->artisan('structura:data', ['name' => 'Product'])->assertExitCode(0);
+        $this->assertTrue(File::exists(app_path('Data/ProductData.php')));
     }
 
     public function test_enum_suffix_is_appended(): void

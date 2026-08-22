@@ -5,7 +5,7 @@ namespace KaueF\Structura\Providers;
 use Illuminate\Support\ServiceProvider;
 use KaueF\Structura\Console\Commands\ActionCreationCommand;
 use KaueF\Structura\Console\Commands\CacheCreationCommand;
-use KaueF\Structura\Console\Commands\DTOCreationCommand;
+use KaueF\Structura\Console\Commands\DataCreationCommand;
 use KaueF\Structura\Console\Commands\EnumCreationCommand;
 use KaueF\Structura\Console\Commands\HelperCreationCommand;
 use KaueF\Structura\Console\Commands\ServiceCreationCommand;
@@ -28,7 +28,7 @@ class ConsoleServiceProvider extends ServiceProvider
             $this->commands([
                 ActionCreationCommand::class,
                 CacheCreationCommand::class,
-                DTOCreationCommand::class,
+                DataCreationCommand::class,
                 EnumCreationCommand::class,
                 HelperCreationCommand::class,
                 ServiceCreationCommand::class,

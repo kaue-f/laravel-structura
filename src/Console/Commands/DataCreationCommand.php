@@ -6,7 +6,7 @@ use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use KaueF\Structura\Console\Concerns\InteractsWithCreate;
 
-class DTOCreationCommand extends GeneratorCommand
+class DataCreationCommand extends GeneratorCommand
 {
     use InteractsWithCreate;
 
@@ -15,26 +15,26 @@ class DTOCreationCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $signature = 'structura:dto {name : DTO name}
+    protected $signature = 'structura:data {name : Data class name}
                             {--no-final : Disable final class}
                             {--no-readonly : Disable readonly class}
-                            {--no-construct : Create DTO without __construct}
-                            {--t|trait : Attach InteractsWithDTO trait}
-                            {--r|raw : Create DTO without helpers or modifiers}';
+                            {--no-construct : Create Data class without __construct}
+                            {--t|trait : Attach InteractsWithData trait}
+                            {--r|raw : Create Data class without helpers or modifiers}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new DTO';
+    protected $description = 'Create a new Data class';
 
     /**
      * The type of class being generated.
      *
      * @var string
      */
-    protected $type = 'DTO';
+    protected $type = 'Data';
 
     /**
      * Get the stub file for the generator.
@@ -43,7 +43,7 @@ class DTOCreationCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__.'/../../../stubs/dto.stub';
+        return __DIR__.'/../../../stubs/data.stub';
     }
 
     /**
@@ -54,7 +54,7 @@ class DTOCreationCommand extends GeneratorCommand
      */
     protected function getDefaultNamespace($rootNamespace)
     {
-        return config('structura.namespaces.dto', $rootNamespace.'\DTOs');
+        return config('structura.namespaces.data', $rootNamespace.'\\Data');
     }
 
     /**
@@ -65,11 +65,7 @@ class DTOCreationCommand extends GeneratorCommand
     protected function getNameInput()
     {
         $name = trim($this->argument('name'));
-        $suffix = config('structura.suffixes.dto', 'DTO');
-
-        if ($suffix === 'DTO') {
-            $name = Str::replace('Dto', 'DTO', $name);
-        }
+        $suffix = config('structura.suffixes.data', 'Data');
 
         return Str::finish($name, $suffix);
     }
@@ -98,16 +94,16 @@ class DTOCreationCommand extends GeneratorCommand
     {
         $stub = parent::buildClass($name);
 
-        $is_raw = $this->optionOrConfig('dto', 'raw');
+        $is_raw = $this->optionOrConfig('data', 'raw');
 
         return str_replace(
             ['{{final}}', '{{readonly}}', '{{trait}}', '{{imports}}', '{{constructor}}'],
             [
-                (! $is_raw && ! $this->optionOrConfig('dto', 'no-final')) ? 'final ' : '',
-                (! $is_raw && ! $this->optionOrConfig('dto', 'no-readonly')) ? 'readonly ' : '',
-                (! $is_raw && $this->optionOrConfig('dto', 'trait')) ? $this->getTraitStub() : '',
-                (! $is_raw && $this->optionOrConfig('dto', 'trait')) ? $this->getImportsStub() : '',
-                (! $is_raw && ! $this->optionOrConfig('dto', 'no-construct')) ? $this->constructMethod() : '//',
+                (! $is_raw && ! $this->optionOrConfig('data', 'no-final')) ? 'final ' : '',
+                (! $is_raw && ! $this->optionOrConfig('data', 'no-readonly')) ? 'readonly ' : '',
+                (! $is_raw && $this->optionOrConfig('data', 'trait')) ? $this->getTraitStub() : '',
+                (! $is_raw && $this->optionOrConfig('data', 'trait')) ? $this->getImportsStub() : '',
+                (! $is_raw && ! $this->optionOrConfig('data', 'no-construct')) ? $this->constructMethod() : '//',
             ],
             $stub
         );
@@ -140,7 +136,7 @@ class DTOCreationCommand extends GeneratorCommand
     protected function getTraitStub(): string
     {
         return <<<'PHP'
-        use InteractsWithDTO;
+        use InteractsWithData;
 
     
     PHP;
@@ -153,7 +149,7 @@ class DTOCreationCommand extends GeneratorCommand
     {
         return <<<PHP
 
-    use KaueF\Structura\Concerns\InteractsWithDTO;
+    use KaueF\Structura\Concerns\InteractsWithData;
 
     PHP;
     }
@@ -165,7 +161,7 @@ class DTOCreationCommand extends GeneratorCommand
     {
         return <<<'PHP'
         public function __construct(
-            // Define your DTO properties here
+            // Define your Data properties here
         ) {}
     PHP;
     }

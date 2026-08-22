@@ -10,7 +10,7 @@
 
 **Laravel Structura** is a Laravel package designed to simplify, standardize, and structure the creation of application resources, promoting a clean, scalable, and well-organized development environment.
 
-Through custom Artisan commands, the package enables the automatic generation of classes such as `Actions`, `Cache`, `DTOs`, `Enums`, `Helpers`, `Services` and `Traits`, encouraging clear separation of responsibilities and solid architectural best practices.
+Through custom Artisan commands, the package enables the automatic generation of classes such as `Actions`, `Cache`, `Data`, `Enums`, `Helpers`, `Services` and `Traits`, encouraging clear separation of responsibilities and solid architectural best practices.
 
 The main goal of Structura is to reduce repetitive tasks, ensure structural consistency, and help developers keep Laravel projects well-organized as they grow.
 
@@ -18,7 +18,7 @@ The main goal of Structura is to reduce repetitive tasks, ensure structural cons
 
 - ✅ **Action** generation with Makeable & Transaction support
 - ✅ **Cache** generation with CacheSupport extension
-- ✅ **DTO** generation with readonly/final patterns
+- ✅ **Data** generation with readonly/final patterns
 - ✅ **Enum** generation with PHP Attributes and `toData()` mapping
 - ✅ **Helper** generation with global autoload registration
 - ✅ **Trait** generation
@@ -57,7 +57,7 @@ This package ships with a built-in [Laravel Boost](https://laravel.com/docs/boos
 php artisan boost:install
 ```
 
-Once installed, your AI agent will understand the Structura architecture — Actions, Services, DTOs, Enums, Caches, and Helpers — and follow all naming conventions and patterns automatically.
+Once installed, your AI agent will understand the Structura architecture — Actions, Services, Data, Enums, Caches, and Helpers — and follow all naming conventions and patterns automatically.
 
 ## 📌 Available commands
 
@@ -65,7 +65,7 @@ Once installed, your AI agent will understand the Structura architecture — Act
 | ------------------- | ---------------------------------------------------- |
 | `structura:action`  | Create **Action** classes with Makeable & Transaction support |
 | `structura:cache`   | Create **Cache** classes with optional CacheSupport  |
-| `structura:dto`     | Create **Data Transfer Object (DTO)** classes        |
+| `structura:data`    | Create **Data** classes with readonly/final patterns |
 | `structura:enum`    | Create **Enum** classes with PHP Attribute mapping   |
 | `structura:helper`  | Create **Helper** classes or global helpers          |
 | `structura:service` | Create **Service** classes with Result & Makeable    |
@@ -102,19 +102,19 @@ php artisan structura:cache Classification --raw     # (-r): standalone class wi
 > Use `--extend` to inherit helper methods from `CacheSupport` (e.g., `remember()`, `forget()`).
 > `--raw` creates a plain class. `--extend` and `--raw` are mutually exclusive.
 
-#### DTO
+#### Data
 
 ```bash
-php artisan structura:dto User
-php artisan structura:dto User --no-final         # Removes the final modifier
-php artisan structura:dto User --no-readonly      # Removes the readonly modifier
-php artisan structura:dto User --no-construct     # Removes the __construct method
-php artisan structura:dto User --trait            # (-t): attaches InteractsWithDTO trait
-php artisan structura:dto User --raw              # (-r): plain class, no modifiers or helpers
+php artisan structura:data User
+php artisan structura:data User --no-final         # Removes the final modifier
+php artisan structura:data User --no-readonly      # Removes the readonly modifier
+php artisan structura:data User --no-construct     # Removes the __construct method
+php artisan structura:data User --trait            # (-t): attaches InteractsWithData trait
+php artisan structura:data User --raw              # (-r): plain class, no modifiers or helpers
 ```
 
-> DTOs are `final readonly` by default following PHP 8.2 best practices.
-> Attach `--trait` to unlock `MyDTO::fromRequest($request)` and `MyDTO::fromArray($data)` helpers.
+> Data classes are `final readonly` by default following PHP 8.2 best practices.
+> Attach `--trait` to unlock `UserData::fromRequest($request)` and `UserData::fromArray($data)` helpers.
 > `--raw` cannot be combined with other flags.
 
 #### Enum
@@ -190,7 +190,7 @@ After publishing, you can set package-wide defaults in `config/structura.php`:
         'makeable' => false,
         'result'   => false,
     ],
-    'dto' => [
+    'data' => [
         'no-final'    => false,
         'no-readonly' => false,
     ],
@@ -216,8 +216,8 @@ app/
 ├── Concerns/
 │   └── Loggable.php
 │
-├── DTOs/
-│   └── UserDTO.php
+├── Data/
+│   └── UserData.php
 │
 ├── Enums/
 │   └── StatusEnum.php

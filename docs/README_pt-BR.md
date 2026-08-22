@@ -10,7 +10,7 @@
 
 **Laravel Structura** é um pacote para Laravel projetado para simplificar, padronizar e estruturar a criação de recursos da aplicação, promovendo um ambiente de desenvolvimento limpo, escalável e bem organizado.
 
-Por meio de comandos Artisan personalizados, o pacote possibilita a geração automática de classes como Actions, Cache, DTOs, Enums, Helpers, Services e Traits, incentivando uma separação clara de responsabilidades e boas práticas arquiteturais.
+Por meio de comandos Artisan personalizados, o pacote possibilita a geração automática de classes como Actions, Cache, Data, Enums, Helpers, Services e Traits, incentivando uma separação clara de responsabilidades e boas práticas arquiteturais.
 
 O principal objetivo do Structura é reduzir tarefas repetitivas, garantir consistência estrutural e ajudar desenvolvedores a manter projetos Laravel bem organizados à medida que crescem.
 
@@ -18,7 +18,7 @@ O principal objetivo do Structura é reduzir tarefas repetitivas, garantir consi
 
 - ✅ Geração de **Action** com suporte a Makeable e Transaction
 - ✅ Geração de **Cache** com extensão CacheSupport
-- ✅ Geração de **DTO** com padrões readonly/final
+- ✅ Geração de **Data** com padrões readonly/final
 - ✅ Geração de **Enum** com PHP Attributes e mapeamento `toData()`
 - ✅ Geração de **Helper** com registro automático no autoload global
 - ✅ Geração de **Trait**
@@ -57,7 +57,7 @@ Este pacote inclui uma skill nativa para o [Laravel Boost](https://laravel.com/d
 php artisan boost:install
 ```
 
-Após instalada, o seu agente de IA entenderá a arquitetura do Structura — Actions, Services, DTOs, Enums, Caches e Helpers — e seguirá todas as convenções de nomenclatura e padrões automaticamente.
+Após instalada, o seu agente de IA entenderá a arquitetura do Structura — Actions, Services, Data, Enums, Caches e Helpers — e seguirá todas as convenções de nomenclatura e padrões automaticamente.
 
 ## 📌 Comandos disponíveis
 
@@ -65,7 +65,7 @@ Após instalada, o seu agente de IA entenderá a arquitetura do Structura — Ac
 | ------------------- | ------------------------------------------------------- |
 | `structura:action`  | Criar classes de **Action** com suporte a Makeable e Transaction |
 | `structura:cache`   | Criar classes de **Cache** com extensão CacheSupport    |
-| `structura:dto`     | Criar classes de **Data Transfer Object (DTO)**         |
+| `structura:data`    | Criar classes de **Data** com padrões readonly/final    |
 | `structura:enum`    | Criar classes **Enum** com mapeamento de PHP Attributes |
 | `structura:helper`  | Criar classes **Helper** ou helpers globais             |
 | `structura:service` | Criar classes de **Service** com Result e Makeable      |
@@ -102,19 +102,19 @@ php artisan structura:cache Classification --raw     # (-r): classe independente
 > Use `--extend` para herdar métodos auxiliares do `CacheSupport` (e.g., `remember()`, `forget()`).
 > `--raw` cria uma classe simples. `--extend` e `--raw` são mutuamente exclusivos.
 
-#### DTO
+#### Data
 
 ```bash
-php artisan structura:dto User
-php artisan structura:dto User --no-final         # Remove o modificador final
-php artisan structura:dto User --no-readonly      # Remove o modificador readonly
-php artisan structura:dto User --no-construct     # Remove o método __construct
-php artisan structura:dto User --trait            # (-t): adiciona a trait InteractsWithDTO
-php artisan structura:dto User --raw              # (-r): classe simples sem modificadores ou helpers
+php artisan structura:data User
+php artisan structura:data User --no-final         # Remove o modificador final
+php artisan structura:data User --no-readonly      # Remove o modificador readonly
+php artisan structura:data User --no-construct     # Remove o método __construct
+php artisan structura:data User --trait            # (-t): adiciona a trait InteractsWithData
+php artisan structura:data User --raw              # (-r): classe simples sem modificadores ou helpers
 ```
 
-> DTOs são `final readonly` por padrão, seguindo as boas práticas do PHP 8.2.
-> Use `--trait` para desbloquear os helpers `MyDTO::fromRequest($request)` e `MyDTO::fromArray($data)`.
+> Classes Data são `final readonly` por padrão, seguindo as boas práticas do PHP 8.2.
+> Use `--trait` para desbloquear os helpers `UserData::fromRequest($request)` e `UserData::fromArray($data)`.
 > `--raw` não pode ser combinado com outras flags.
 
 #### Enum
@@ -190,7 +190,7 @@ Após publicar, você pode definir padrões globais no `config/structura.php`:
         'makeable' => false,
         'result'   => false,
     ],
-    'dto' => [
+    'data' => [
         'no-final'    => false,
         'no-readonly' => false,
     ],
@@ -216,8 +216,8 @@ app/
 ├── Concerns/
 │   └── Loggable.php
 │
-├── DTOs/
-│   └── UserDTO.php
+├── Data/
+│   └── UserData.php
 │
 ├── Enums/
 │   └── StatusEnum.php

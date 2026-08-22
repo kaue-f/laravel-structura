@@ -4,15 +4,15 @@ namespace KaueF\Structura\Concerns;
 
 use ReflectionClass;
 
-trait InteractsWithDTO
+trait InteractsWithData
 {
     /**
-     * Creates the DTO from an associative array.
+     * Creates the Data object from an associative array.
      *
      * Array values are automatically mapped to the constructor parameters
      * using each parameter name as the corresponding key.
      *
-     * @param  array<string, mixed>  $data  Data used to create the DTO.
+     * @param  array<string, mixed>  $data  Data used to create the object.
      */
     public static function fromArray(array $data): static
     {
@@ -27,7 +27,7 @@ trait InteractsWithDTO
     }
 
     /**
-     * Converts the DTO to an associative array.
+     * Converts the Data object to an associative array.
      */
     public function toArray(): array
     {
@@ -37,7 +37,7 @@ trait InteractsWithDTO
     /**
      * Returns data to be serialized when converting the object to JSON.
      *
-     * @return string JSON representation of the DTO.
+     * @return string JSON representation of the Data object.
      */
     public function toJson(): string
     {

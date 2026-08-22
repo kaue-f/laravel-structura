@@ -1,6 +1,6 @@
 ---
 name: structura
-description: "Apply this skill whenever working with the laravel-structura package. Activate when creating or refactoring Actions, Services, DTOs, Enums, Caches, Helpers, or Traits via the `structura:*` Artisan commands. Also activate when the user mentions Actions, ServiceResult, Makeable, InteractsWithDTO, InteractsWithEnum, toData(), or any class under App\\Actions, App\\Services, App\\DTOs, App\\Enums, App\\Caches, App\\Helpers, or App\\Concerns."
+description: "Apply this skill whenever working with the laravel-structura package. Activate when creating or refactoring Actions, Services, Data, Enums, Caches, Helpers, or Traits via the `structura:*` Artisan commands. Also activate when the user mentions Actions, ServiceResult, Makeable, InteractsWithData, InteractsWithEnum, toData(), or any class under App\\Actions, App\\Services, App\\Data, App\\Enums, App\\Caches, App\\Helpers, or App\\Concerns."
 license: MIT
 metadata:
   author: kaue-f
@@ -10,7 +10,7 @@ metadata:
 
 ## Introduction
 
-You are working in a Laravel project that uses the `kaue-f/laravel-structura` package. This package enforces a clean, consistent, and highly decoupled architecture using patterns like Actions, Services, DTOs, Enums, Caches, Helpers, and Traits.
+You are working in a Laravel project that uses the `kaue-f/laravel-structura` package. This package enforces a clean, consistent, and highly decoupled architecture using patterns like Actions, Services, Data, Enums, Caches, Helpers, and Traits.
 
 Whenever you are asked to generate or refactor business logic, strictly follow these guidelines to maintain architectural consistency.
 
@@ -28,10 +28,10 @@ Whenever you are asked to generate or refactor business logic, strictly follow t
     -   *Rule:* If `Makeable` is used with a custom method, ensure `protected string $makeableMethod = 'methodName'` is declared.
     -   *Suffix requirement:* Must end with `Service` (auto-enforced).
 
--   **DTOs - Data Transfer Objects (`App\DTOs`)**: Read-only data containers passed between layers.
-    -   *Rule:* DTOs are `final readonly` by default. Only disable with explicit `--no-final` or `--no-readonly` flags.
-    -   *Rule:* Attach `InteractsWithDTO` trait to unlock `MyDTO::fromRequest($request)` and `MyDTO::fromArray($data)`.
-    -   *Suffix requirement:* Must end with `DTO` (auto-enforced).
+-   **Data (`App\Data`)**: Read-only data containers passed between layers.
+    -   *Rule:* Data classes are `final readonly` by default. Only disable with explicit `--no-final` or `--no-readonly` flags.
+    -   *Rule:* Attach `InteractsWithData` trait to unlock `UserData::fromRequest($request)` and `UserData::fromArray($data)`.
+    -   *Suffix requirement:* Must end with `Data` (auto-enforced).
 
 -   **Enums (`App\Enums`)**: Constant and status definitions using PHP native Enums.
     -   *Rule:* Default backing is `string`. Use `#[Label]`, `#[Color]`, `#[Icon]`, and `#[DefaultCase]` Attributes.
@@ -60,7 +60,7 @@ The package enforces strict naming. Always use and suggest the correct suffixes:
 |---------|------------|--------------------------|
 | Action  | `*Action`  | `ProcessPaymentAction`   |
 | Service | `*Service` | `SocialAuthService`      |
-| DTO     | `*DTO`     | `UserRegistrationDTO`    |
+| Data    | `*Data`    | `UserRegistrationData`   |
 | Enum    | `*Enum`    | `UserRoleEnum`           |
 | Cache   | `*Cache`   | `ClassificationCache`    |
 | Helper  | `*Helper`  | `StringHelper`           |
@@ -79,6 +79,7 @@ Key defaults in a standard install:
 ```php
 'action'  => ['execute' => true, 'makeable' => true, 'transaction' => false]
 'service' => ['makeable' => false, 'result' => false]
+'data'    => ['no-final' => false, 'no-readonly' => false]
 'enum'    => ['backed' => 'string']
 ```
 
@@ -97,8 +98,8 @@ php artisan structura:action Name --raw         # (-r) empty class
 # Services
 php artisan structura:service Name --method=process --result --makeable
 
-# DTOs
-php artisan structura:dto Name --trait          # Enables fromRequest() / fromArray()
+# Data
+php artisan structura:data Name --trait          # Enables fromRequest() / fromArray()
 
 # Enums
 php artisan structura:enum Name --backed=string --cases=A,B,C --label --trait
@@ -118,4 +119,4 @@ php artisan structura:trait Name
 ---
 
 **Summary for AI agents:**
-Separate layers strictly. Orchestrate with `*Action::run()`, process with `*Service` returning `ServiceResult`, carry data with `*DTO`, define constants with `*Enum` using `toData()`, and cache with `*Cache`. Use the generator commands to ensure consistency. Never hardcode namespaces — always reference `config/structura.php`.
+Separate layers strictly. Orchestrate with `*Action::run()`, process with `*Service` returning `ServiceResult`, carry data with `*Data`, define constants with `*Enum` using `toData()`, and cache with `*Cache`. Use the generator commands to ensure consistency. Never hardcode namespaces — always reference `config/structura.php`.
