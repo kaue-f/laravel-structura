@@ -26,6 +26,7 @@ class CacheCreationCommandTest extends TestCase
 
         $path = app_path('Caches/SampleCache.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString("protected string \$prefix = 'sample'", File::get($path));
     }
 
@@ -37,11 +38,11 @@ class CacheCreationCommandTest extends TestCase
     {
         $this->artisan('structura:cache', [
             'name' => 'SampleCache',
-            '-e' => true,
         ])->assertExitCode(0);
 
         $path = app_path('Caches/SampleCache.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('extends CacheSupport', File::get($path));
         $this->assertStringContainsString('use KaueF\Structura\Support\CacheSupport;', File::get($path));
         $this->assertStringContainsString("protected string \$prefix = 'sample'", File::get($path));
@@ -61,5 +62,6 @@ class CacheCreationCommandTest extends TestCase
 
         $path = app_path('Caches/SampleCache.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
     }
 }

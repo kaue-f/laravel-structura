@@ -26,6 +26,7 @@ class ServiceCreationCommandTest extends TestCase
 
         $path = app_path('Services/SampleService.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringNotContainsString('public function __construct()', File::get($path));
     }
 
@@ -43,6 +44,7 @@ class ServiceCreationCommandTest extends TestCase
 
         $path = app_path('Services/SampleService.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('use KaueF\Structura\Support\ServiceResult;', File::get($path));
         $this->assertStringContainsString('public function process(): ServiceResult', File::get($path));
         $this->assertStringContainsString('return ServiceResult::success();', File::get($path));
@@ -62,6 +64,7 @@ class ServiceCreationCommandTest extends TestCase
 
         $path = app_path('Services/SampleService.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('use Makeable;', File::get($path));
         $this->assertStringContainsString("protected string \$makeableMethod = 'process';", File::get($path));
         $this->assertStringContainsString('public function process()', File::get($path));

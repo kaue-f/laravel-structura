@@ -94,13 +94,12 @@ php artisan structura:action Logout --raw         # (-r): cria classe vazia sem 
 #### Cache
 
 ```bash
-php artisan structura:cache Classification
-php artisan structura:cache Classification --extend  # (-e): estende CacheSupport e adiciona a propriedade $prefix
+php artisan structura:cache Classification           # Padrão: estende CacheSupport e adiciona a propriedade $prefix
 php artisan structura:cache Classification --raw     # (-r): classe independente sem CacheSupport
 ```
 
-> Use `--extend` para herdar métodos auxiliares do `CacheSupport` (e.g., `remember()`, `forget()`).
-> `--raw` cria uma classe simples. `--extend` e `--raw` são mutuamente exclusivos.
+> Por padrão, a classe herda métodos auxiliares do `CacheSupport` (e.g., `remember()`, `forget()`).
+> Use `--raw` para criar uma classe simples sem extensão.
 
 #### Data
 
@@ -109,12 +108,11 @@ php artisan structura:data User
 php artisan structura:data User --no-final         # Remove o modificador final
 php artisan structura:data User --no-readonly      # Remove o modificador readonly
 php artisan structura:data User --no-construct     # Remove o método __construct
-php artisan structura:data User --trait            # (-t): adiciona a trait InteractsWithData
-php artisan structura:data User --raw              # (-r): classe simples sem modificadores ou helpers
+php artisan structura:data User --raw              # (-r): classe simples sem helpers ou modificadores
 ```
 
 > Classes Data são `final readonly` por padrão, seguindo as boas práticas do PHP 8.2.
-> Use `--trait` para desbloquear os helpers `UserData::fromRequest($request)` e `UserData::fromArray($data)`.
+> As classes Data geradas implementam `JsonSerializable` e usam `InteractsWithData`, que fornece `make()`, `from()`, `fromRequest()`, `fromArray()`, `toArray()` e serialização JSON nativa. Estenda `DataSupport` apenas quando uma classe base abstrata for mais adequada que uma trait.
 > `--raw` não pode ser combinado com outras flags.
 
 #### Enum
@@ -160,6 +158,7 @@ php artisan structura:service Comment --makeable               # (--mk): adicion
 ```
 
 > **ServiceResult** padroniza as respostas do seu service:
+>
 > ```php
 > return ServiceResult::success($data);
 > return ServiceResult::failure('Mensagem de erro');

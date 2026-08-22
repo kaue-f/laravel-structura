@@ -28,6 +28,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('public function execute()', File::get($path));
     }
 
@@ -45,6 +46,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('public function handle()', File::get($path));
     }
 
@@ -62,6 +64,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('public function __invoke()', File::get($path));
     }
 
@@ -79,6 +82,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('public function __construct()', File::get($path));
     }
 
@@ -96,6 +100,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
     }
 
     public function test_action_creation_with_makeable_trait(): void
@@ -108,6 +113,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('use KaueF\Structura\Concerns\Makeable;', File::get($path));
         $this->assertStringContainsString('use Makeable;', File::get($path));
     }
@@ -122,6 +128,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/SampleAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('DB::transaction(function', File::get($path));
     }
 
@@ -135,6 +142,7 @@ class ActionCreationCommandTest extends TestCase
 
         $path = app_path('Actions/ConfigAction.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('use KaueF\Structura\Concerns\Makeable;', File::get($path));
         $this->assertStringContainsString('use Makeable;', File::get($path));
     }

@@ -2,11 +2,13 @@
 
 namespace KaueF\Structura\Support;
 
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use JsonSerializable;
 
-class ServiceResult implements Responsable
+class ServiceResult implements Responsable, Arrayable, JsonSerializable
 {
     /**
      * @param  bool  $success  Determines if the service executed successfully.
@@ -54,12 +56,9 @@ class ServiceResult implements Responsable
     }
 
     /**
-     * Formats the result as an HTTP response.
-     * Allows controllers to simply return the ServiceResult directly.
-     *
-     * @param  Request  $request
+     * Formats the result as an array.
      */
-    public function toResponse($request): JsonResponse
+    public function toArray(): array
     {
         $payload = [
             'success' => $this->success,
@@ -73,6 +72,25 @@ class ServiceResult implements Responsable
             $payload['data'] = $this->data;
         }
 
-        return response()->json($payload, $this->status);
+        return $payload;
+    }
+
+    /**
+     * Serializes the result to JSON.
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Formats the result as an HTTP response.
+     * Allows controllers to simply return the ServiceResult directly.
+     *
+     * @param  Request  $request
+     */
+    public function toResponse($request): JsonResponse
+    {
+        return response()->json($this->toArray(), $this->status);
     }
 }

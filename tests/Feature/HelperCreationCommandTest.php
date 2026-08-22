@@ -26,6 +26,7 @@ class HelperCreationCommandTest extends TestCase
 
         $path = app_path('Helpers/SampleHelper.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringNotContainsString('public static function example(mixed $value)', File::get($path));
     }
 
@@ -44,6 +45,7 @@ class HelperCreationCommandTest extends TestCase
         $composer_path = base_path('composer.json');
 
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('function isNullOrEmpty(mixed $value)', File::get($path));
         $this->assertStringContainsString("app\/Helpers\/helpers.php", File::get($composer_path));
     }
@@ -64,6 +66,7 @@ class HelperCreationCommandTest extends TestCase
         $composer_path = base_path('composer.json');
 
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('<?php', File::get($path));
         $this->assertStringContainsString("app\/Helpers\/sample_helper.php", File::get($composer_path));
     }

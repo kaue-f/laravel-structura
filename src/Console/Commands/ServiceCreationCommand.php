@@ -93,8 +93,9 @@ class ServiceCreationCommand extends GeneratorCommand
     {
         $stub = parent::buildClass($name);
 
-        $use_result = $this->optionOrConfig('service', 'result');
-        $use_makeable = $this->optionOrConfig('service', 'makeable');
+        $methodName = $this->option('method');
+        $use_result = $methodName !== null && $this->optionOrConfig('service', 'result');
+        $use_makeable = $methodName !== null && $this->optionOrConfig('service', 'makeable');
 
         $imports = '';
         $trait = '';
@@ -107,7 +108,7 @@ class ServiceCreationCommand extends GeneratorCommand
             $imports .= "\nuse KaueF\Structura\Concerns\Makeable;";
             $trait .= "    use Makeable;\n\n";
 
-            if ($methodName = $this->option('method')) {
+            if ($methodName) {
                 $trait .= "    protected string \$makeableMethod = '{$methodName}';\n\n";
             }
         }
@@ -128,6 +129,26 @@ class ServiceCreationCommand extends GeneratorCommand
      */
     protected function validateMethodOptions(): bool
     {
+        $method = $this->option('method');
+
+        if ($method !== null && ! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $method)) {
+            $this->error('⚠️ The --method option must be a valid PHP method name.');
+
+            return false;
+        }
+
+        if ($this->option('result') && $method === null) {
+            $this->error('⚠️ The --result option requires --method.');
+
+            return false;
+        }
+
+        if ($this->option('makeable') && $method === null) {
+            $this->error('⚠️ The --makeable option requires --method.');
+
+            return false;
+        }
+
         return true;
     }
 

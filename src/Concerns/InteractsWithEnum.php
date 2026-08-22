@@ -15,17 +15,17 @@ trait InteractsWithEnum
 
     public function label(string $labelMethod = 'label'): string
     {
-        return EnumSupport::label($this, null);
+        return EnumSupport::label($this, $labelMethod === __FUNCTION__ ? null : $labelMethod);
     }
 
     public function color(string $colorMethod = 'color'): ?string
     {
-        return EnumSupport::color($this, null);
+        return EnumSupport::color($this, $colorMethod === __FUNCTION__ ? null : $colorMethod);
     }
 
     public function icon(string $iconMethod = 'icon'): ?string
     {
-        return EnumSupport::icon($this, null);
+        return EnumSupport::icon($this, $iconMethod === __FUNCTION__ ? null : $iconMethod);
     }
 
     public static function toData(string $labelMethod = 'label', ?callable $callback = null, string $sortBy = 'name', $order = 'asc', ?array $map = null, bool $color = false, bool $icon = false): array
@@ -77,9 +77,9 @@ trait InteractsWithEnum
         return EnumSupport::tryFromName(enum: static::class, name: $name);
     }
 
-    public static function equals(UnitEnum|string $enum): bool
+    public function equals(UnitEnum $enum): bool
     {
-        return EnumSupport::equals(enum_a: static::class, enum_b: $enum);
+        return EnumSupport::equals(enum_a: $this, enum_b: $enum);
     }
 
     public static function in(array $enum): bool

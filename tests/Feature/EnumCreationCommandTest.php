@@ -25,6 +25,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum', File::get($path));
     }
 
@@ -38,6 +39,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum: string', File::get($path));
     }
 
@@ -51,6 +53,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum: int', File::get($path));
     }
 
@@ -64,6 +67,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum', File::get($path));
         $this->assertStringContainsString('case First', File::get($path));
         $this->assertStringContainsString('case Second', File::get($path));
@@ -81,6 +85,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum: string', File::get($path));
         $this->assertStringContainsString("case First = 'first'", File::get($path));
         $this->assertStringContainsString("case Second = 'second'", File::get($path));
@@ -98,6 +103,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum: int', File::get($path));
         $this->assertStringContainsString('case First = 1', File::get($path));
         $this->assertStringContainsString('case Second = 2', File::get($path));
@@ -114,6 +120,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum', File::get($path));
         $this->assertStringContainsString('use KaueF\Structura\Attributes\Label;', File::get($path));
     }
@@ -129,6 +136,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString("#[Label('First')]", File::get($path));
         $this->assertStringContainsString('case First;', File::get($path));
     }
@@ -143,6 +151,7 @@ class EnumCreationCommandTest extends TestCase
 
         $path = app_path('Enums/SampleEnum.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('enum SampleEnum', File::get($path));
         $this->assertStringContainsString('use KaueF\Structura\Concerns\InteractsWithEnum;', File::get($path));
         $this->assertStringContainsString('use InteractsWithEnum', File::get($path));

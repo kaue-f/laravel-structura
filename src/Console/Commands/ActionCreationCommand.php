@@ -98,7 +98,7 @@ class ActionCreationCommand extends GeneratorCommand
 
         $is_raw = $this->optionOrConfig('action', 'raw');
         $use_construct = $this->optionOrConfig('action', 'construct');
-        $use_makeable = $this->optionOrConfig('action', 'makeable');
+        $use_makeable = ! $is_raw && $this->optionOrConfig('action', 'makeable');
 
         $imports = '';
         $trait = '';
@@ -113,7 +113,7 @@ class ActionCreationCommand extends GeneratorCommand
                 $imports,
                 $trait,
                 $this->getMethodStub($is_raw),
-                (! $is_raw && $use_construct) ? $this->constructMethod() : '',
+                (! $is_raw && $use_construct) ? $this->constructMethod() . "\n\n" : '',
             ],
             $stub
         );
@@ -125,7 +125,7 @@ class ActionCreationCommand extends GeneratorCommand
     protected function validateMethodOptions(): bool
     {
         if ($this->option('raw')) {
-            $others = collect(['execute', 'handle', 'invokable', 'construct'])
+            $others = collect(['execute', 'handle', 'invokable', 'construct', 'makeable', 'transaction'])
                 ->filter(fn ($option) => $this->option($option));
 
             if ($others->isNotEmpty()) {
@@ -165,15 +165,10 @@ class ActionCreationCommand extends GeneratorCommand
         if ($this->option('invokable')) {
             return $this->invokableMethod();
         }
-        if ($this->option('construct')) {
-            return $this->constructMethod();
-        }
-
         return match (true) {
             $this->optionOrConfig('action', 'execute') => $this->executeMethod(),
             $this->optionOrConfig('action', 'handle') => $this->handleMethod(),
             $this->optionOrConfig('action', 'invokable') => $this->invokableMethod(),
-            $this->optionOrConfig('action', 'construct') => $this->constructMethod(),
             default => '//',
         };
     }

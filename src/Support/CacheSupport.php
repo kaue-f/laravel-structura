@@ -31,15 +31,14 @@ abstract class CacheSupport implements CacheInterface
     /**
      * Validate the TTL (Time To Live) value.
      *
-     * Ensures the TTL is a non-negative integer.
-     *
+     * Ensures the TTL is a non-negative integer or zero (for immediate expiration).
      *
      * @throws InvalidArgumentException
      */
-    protected function validateTtl(int $ttl): int
+    protected function validateTtl(int|\DateInterval|\DateTimeInterface|null $ttl): int|\DateInterval|\DateTimeInterface|null
     {
-        if ($ttl < 0) {
-            throw new InvalidArgumentException('TTL must be a positive integer');
+        if (is_int($ttl) && $ttl < 0) {
+            throw new InvalidArgumentException('TTL must be a positive integer or zero (for immediate expiration).');
         }
 
         return $ttl;
@@ -71,7 +70,7 @@ abstract class CacheSupport implements CacheInterface
     /**
      * Store an item in the cache for a given number of seconds.
      */
-    public function put(string $key, mixed $value, ?int $seconds = null): bool
+    public function put(string $key, mixed $value, int|\DateInterval|\DateTimeInterface|null $seconds = null): bool
     {
         return Cache::put(
             key: $this->key($key),

@@ -76,14 +76,12 @@ return [
             'raw' => false,
         ],
         'cache' => [
-            'extend' => false,
             'raw' => false,
         ],
         'data' => [
             'no-final' => false,
             'no-readonly' => false,
             'no-construct' => false,
-            'trait' => false,
             'raw' => false,
         ],
         'enum' => [

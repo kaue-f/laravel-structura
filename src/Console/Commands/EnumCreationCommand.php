@@ -195,46 +195,6 @@ class EnumCreationCommand extends GeneratorCommand
     }
 
     /**
-     * Get the label method stub.
-     */
-    protected function getLabelMethod(): string
-    {
-        $matches = $this->getMatches();
-
-        return <<<PHP
-
-
-        public function label(): string
-        {
-             return match (\$this) {
-    {$matches}
-             };
-        }
-    PHP;
-    }
-
-    /**
-     * Get the matches based on the selected option.
-     */
-    protected function getMatches(): string
-    {
-        if (! $this->option('cases')) {
-            return "            '' => '',";
-        }
-
-        return collect(explode(',', $this->option('cases')))
-            ->map(fn ($case) => trim($case))
-            ->filter()
-            ->map(function ($case) {
-                $self = $this->normalizeEnumCase($case);
-                $label = ucwords(strtolower(str_replace(['_', '-'], ' ', $case)));
-
-                return "            self::{$self} => '{$label}',";
-            })
-            ->implode("\n");
-    }
-
-    /**
      * Normalize the enum case.
      */
     protected function normalizeEnumCase(string $case): string

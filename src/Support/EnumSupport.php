@@ -262,7 +262,7 @@ class EnumSupport
      */
     public static function toJson(UnitEnum|string $enum): string
     {
-        return json_encode(self::toArray(enum: $enum));
+        return json_encode(self::toArray(enum: $enum), JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -337,8 +337,8 @@ class EnumSupport
     /**
      * Checks whether two enum values are identical.
      *
-     * @param  UnitEnum|string  $enumA  Enum value to compare.
-     * @param  UnitEnum  $enumB  Reference enum value.
+     * @param  UnitEnum|string  $enum_a  Enum value to compare.
+     * @param  UnitEnum  $enum_b  Reference enum value.
      * @return bool True if both are identical.
      */
     public static function equals(UnitEnum|string $enum_a, UnitEnum $enum_b): bool
@@ -350,13 +350,13 @@ class EnumSupport
      * Determines if any enum value exists in the given array.
      *
      * @param  UnitEnum|string  $enum  Enum instance or enum class name.
-     * @param  array  $enumArray  Array of values to check.
+     * @param  array  $enum_array  Array of values to check.
      * @return bool True if a match is found.
      */
     public static function in(UnitEnum|string $enum, array $enum_array): bool
     {
         foreach (self::cases($enum) as $case) {
-            if (in_array($case->value, $enum_array, true)) {
+            if (in_array(self::value($case), $enum_array, true)) {
                 return true;
             }
         }
@@ -378,10 +378,19 @@ class EnumSupport
         $enum = self::class($enum);
         $except = array_filter((array) $except, fn ($e) => $e !== null);
 
+        $exceptValues = array_map(
+            fn ($e) => $e instanceof UnitEnum ? self::value($e) : $e,
+            $except
+        );
+
         $cases = array_filter(
             self::cases($enum),
-            fn ($case): bool => ! in_array(self::value($case), $except, true)
+            fn ($case): bool => ! in_array(self::value($case), $exceptValues, true)
         );
+
+        if (empty($cases)) {
+            throw new \InvalidArgumentException('No enum cases available after exclusion.');
+        }
 
         return $cases[array_rand($cases)];
     }

@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 {{imports}}
-{{final}}{{readonly}}class {{ class }}
+{{final}}{{readonly}}class {{ class }}{{implements}}
 {
 {{trait}}{{constructor}}
 }

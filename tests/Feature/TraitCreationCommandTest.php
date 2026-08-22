@@ -25,6 +25,7 @@ class TraitCreationCommandTest extends TestCase
 
         $path = app_path('Concerns/Sample.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('trait Sample', File::get($path));
     }
 }

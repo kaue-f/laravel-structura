@@ -131,7 +131,7 @@ class HelperCreationCommand extends GeneratorCommand
      */
     protected function createHelperStub(): int
     {
-        $path = app_path('Helpers/helpers.php');
+        $path = config('structura.paths.helper', app_path('Helpers')) . '/helpers.php';
 
         if (file_exists($path)) {
             $this->warn("\n⚠️ Helper from package stub already exists!\n");
@@ -179,7 +179,7 @@ class HelperCreationCommand extends GeneratorCommand
         }
 
         $this->makeDirectory($path);
-        File::put($path, $this->getPHP());
+        File::put($path, $this->getPHP($snakeName));
 
         $this->registerComposer("{$snakeName}.php");
         $this->info("\n✨ Helper global created successfully!");
@@ -227,13 +227,21 @@ class HelperCreationCommand extends GeneratorCommand
     /**
      * Get the PHP stub.
      */
-    protected function getPHP(): string
+    protected function getPHP(string $helperName = 'example_helper'): string
     {
-        return <<<'PHP'
-    <?php
-    
-    
-    PHP;
+        return <<<PHP
+<?php
+
+if (! function_exists('{$helperName}')) {
+    /**
+     * {$helperName} description
+     */
+    function {$helperName}()
+    {
+        //
+    }
+}
+PHP;
     }
 
     /**
@@ -247,7 +255,7 @@ class HelperCreationCommand extends GeneratorCommand
 
         $files = $composer['autoload']['files'] ?? [];
 
-        $helper_path = "app/Helpers/{$helper}";
+        $helper_path = str_replace(base_path() . '/', '', config('structura.paths.helper', app_path('Helpers'))) . "/{$helper}";
 
         if (! in_array($helper_path, $files, true)) {
             $files[] = $helper_path;

@@ -94,13 +94,12 @@ php artisan structura:action Logout --raw         # (-r): creates empty class bo
 #### Cache
 
 ```bash
-php artisan structura:cache Classification
-php artisan structura:cache Classification --extend  # (-e): extends CacheSupport, adds $prefix property
+php artisan structura:cache Classification           # Default: extends CacheSupport, adds $prefix property
 php artisan structura:cache Classification --raw     # (-r): standalone class without CacheSupport
 ```
 
-> Use `--extend` to inherit helper methods from `CacheSupport` (e.g., `remember()`, `forget()`).
-> `--raw` creates a plain class. `--extend` and `--raw` are mutually exclusive.
+> By default, the class inherits helper methods from `CacheSupport` (e.g., `remember()`, `forget()`).
+> Use `--raw` to create a plain standalone class.
 
 #### Data
 
@@ -109,12 +108,11 @@ php artisan structura:data User
 php artisan structura:data User --no-final         # Removes the final modifier
 php artisan structura:data User --no-readonly      # Removes the readonly modifier
 php artisan structura:data User --no-construct     # Removes the __construct method
-php artisan structura:data User --trait            # (-t): attaches InteractsWithData trait
-php artisan structura:data User --raw              # (-r): plain class, no modifiers or helpers
+php artisan structura:data User --raw              # (-r): plain class, no helpers or modifiers
 ```
 
 > Data classes are `final readonly` by default following PHP 8.2 best practices.
-> Attach `--trait` to unlock `UserData::fromRequest($request)` and `UserData::fromArray($data)` helpers.
+> Generated Data classes implement `JsonSerializable` and use `InteractsWithData`, providing `make()`, `from()`, `fromRequest()`, `fromArray()`, `toArray()`, and native JSON serialization. Extend `DataSupport` only when an abstract base class is more suitable than a trait.
 > `--raw` cannot be combined with other flags.
 
 #### Enum
@@ -160,6 +158,7 @@ php artisan structura:service Comment --makeable               # (--mk): attache
 ```
 
 > **ServiceResult** standardizes your service responses:
+>
 > ```php
 > return ServiceResult::success($data);
 > return ServiceResult::failure('Error message');

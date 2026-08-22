@@ -23,6 +23,7 @@ class DataCreationCommandTest extends TestCase
 
         $path = app_path('Data/SampleData.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('final readonly class SampleData', File::get($path));
         $this->assertStringContainsString('public function __construct', File::get($path));
     }
@@ -37,6 +38,7 @@ class DataCreationCommandTest extends TestCase
 
         $path = app_path('Data/SampleData.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('readonly class SampleData', File::get($path));
         $this->assertStringNotContainsString('final readonly class SampleData', File::get($path));
         $this->assertStringContainsString('public function __construct', File::get($path));
@@ -52,8 +54,10 @@ class DataCreationCommandTest extends TestCase
 
         $path = app_path('Data/SampleData.php');
         $this->assertTrue(File::exists($path));
-        $this->assertStringContainsString('final class SampleData', File::get($path));
+        $this->assertValidPhp($path);
+        $this->assertStringContainsString('final class SampleData implements JsonSerializable', File::get($path));
         $this->assertStringNotContainsString('readonly class SampleData', File::get($path));
+        $this->assertStringContainsString('use InteractsWithData;', File::get($path));
         $this->assertStringContainsString('public function __construct', File::get($path));
     }
 
@@ -67,23 +71,23 @@ class DataCreationCommandTest extends TestCase
 
         $path = app_path('Data/SampleData.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringContainsString('final readonly class SampleData', File::get($path));
         $this->assertStringContainsString('//', File::get($path));
     }
 
-    public function test_data_creation_with_trait(): void
+    public function test_data_creation_uses_the_data_trait(): void
     {
         $this->artisan('structura:data', [
             'name' => 'Sample',
-            '-t' => true,
         ])
             ->assertExitCode(0);
 
         $path = app_path('Data/SampleData.php');
         $this->assertTrue(File::exists($path));
-        $this->assertStringContainsString('final readonly class SampleData', File::get($path));
-        $this->assertStringContainsString('use KaueF\Structura\Concerns\InteractsWithData;', File::get($path));
-        $this->assertStringContainsString('use InteractsWithData', File::get($path));
+        $this->assertValidPhp($path);
+        $this->assertStringContainsString('final readonly class SampleData implements JsonSerializable', File::get($path));
+        $this->assertStringContainsString('use KaueF\\Structura\\Concerns\\InteractsWithData;', File::get($path));
     }
 
     /**
@@ -100,6 +104,7 @@ class DataCreationCommandTest extends TestCase
 
         $path = app_path('Data/SampleData.php');
         $this->assertTrue(File::exists($path));
+        $this->assertValidPhp($path);
         $this->assertStringNotContainsString('final', File::get($path));
         $this->assertStringNotContainsString('readonly', File::get($path));
     }

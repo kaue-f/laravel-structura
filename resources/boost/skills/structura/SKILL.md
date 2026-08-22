@@ -30,7 +30,7 @@ Whenever you are asked to generate or refactor business logic, strictly follow t
 
 -   **Data (`App\Data`)**: Read-only data containers passed between layers.
     -   *Rule:* Data classes are `final readonly` by default. Only disable with explicit `--no-final` or `--no-readonly` flags.
-    -   *Rule:* Attach `InteractsWithData` trait to unlock `UserData::fromRequest($request)` and `UserData::fromArray($data)`.
+    -   *Rule:* Generated Data classes implement `JsonSerializable` and use `InteractsWithData`, which provides `make()`, `from()`, `fromRequest()`, `fromArray()`, `toArray()`, and JSON serialization. Extend `DataSupport` only when an abstract base class is preferable.
     -   *Suffix requirement:* Must end with `Data` (auto-enforced).
 
 -   **Enums (`App\Enums`)**: Constant and status definitions using PHP native Enums.
@@ -42,7 +42,7 @@ Whenever you are asked to generate or refactor business logic, strictly follow t
     -   *Suffix requirement:* Must end with `Enum` (auto-enforced).
 
 -   **Cache (`App\Caches`)**: Cache layer classes.
-    -   *Rule:* Use `--extend` to inherit from `CacheSupport` and get `remember()`, `forget()`, and `$prefix` out of the box.
+    -   *Rule:* By default inherits from `CacheSupport` to get `remember()`, `forget()`, and `$prefix` out of the box. Use `--raw` to skip inheritance.
     -   *Suffix requirement:* Must end with `Cache` (auto-enforced).
 
 -   **Helpers (`App\Helpers`)**: Utility functions.
@@ -99,13 +99,14 @@ php artisan structura:action Name --raw         # (-r) empty class
 php artisan structura:service Name --method=process --result --makeable
 
 # Data
-php artisan structura:data Name --trait          # Enables fromRequest() / fromArray()
+php artisan structura:data Name                  # Uses InteractsWithData and JsonSerializable
 
 # Enums
 php artisan structura:enum Name --backed=string --cases=A,B,C --label --trait
 
 # Cache
-php artisan structura:cache Name --extend
+php artisan structura:cache Name               # Default extends CacheSupport
+php artisan structura:cache Name --raw         # (-r) standalone class
 
 # Helpers
 php artisan structura:helper Name --global

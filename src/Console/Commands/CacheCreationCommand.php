@@ -16,7 +16,6 @@ class CacheCreationCommand extends GeneratorCommand
      * @var string
      */
     protected $signature = 'structura:cache {name : Cache name}
-                            {--e|extend : Create a cache class extending CacheSupport}
                             {--r|raw : Create a standalone cache class without CacheSupport extension}';
 
     /**
@@ -74,10 +73,6 @@ class CacheCreationCommand extends GeneratorCommand
      */
     public function handle()
     {
-        if ($this->validateMethodOptions() === false) {
-            return self::FAILURE;
-        }
-
         return parent::handle();
     }
 
@@ -92,35 +87,20 @@ class CacheCreationCommand extends GeneratorCommand
         $stub = parent::buildClass($name);
 
         $is_raw = $this->optionOrConfig('cache', 'raw');
-        $use_extend = $this->optionOrConfig('cache', 'extend');
+        $use_extend = ! $is_raw;
 
         return str_replace(
             ['{{extends}}', '{{imports}}', '{{prefix}}'],
             [
-                (! $is_raw && $use_extend) ? 'extends CacheSupport' : '',
-                (! $is_raw && $use_extend) ? $this->getImportsStub() : '',
-                ($is_raw) ? '//' : $this->getPrefixStub($name),
+                $use_extend ? 'extends CacheSupport' : '',
+                $use_extend ? $this->getImportsStub() : '',
+                $use_extend ? $this->getPrefixStub($name) : '//',
             ],
             $stub
         );
     }
 
-    /**
-     * Validate the method options.
-     */
-    protected function validateMethodOptions(): bool
-    {
-        $methods = collect(['extend', 'raw'])
-            ->filter(fn ($option) => $this->option($option));
 
-        if ($methods->count() > 1) {
-            $this->error('⚠️ Choose only one option: --extend or --raw.');
-
-            return false;
-        }
-
-        return true;
-    }
 
     /**
      * Get the imports stub based on the selected option.
@@ -139,7 +119,7 @@ class CacheCreationCommand extends GeneratorCommand
      */
     protected function getPrefixStub(string $name): string
     {
-        $name = strtolower(preg_replace('/Cache$/', '', class_basename($name)));
+        $name = Str::snake(preg_replace('/Cache$/', '', class_basename($name)));
 
         return <<<PHP
     /**
